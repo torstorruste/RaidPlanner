@@ -35,4 +35,10 @@ public class RaidDao {
     public List<Raid> getRaids() {
         return raids;
     }
+
+    public Raid getRaid(LocalDate date) {
+        return raids.stream()
+                .filter(r->r.start.equals(date))
+                .findFirst().orElseThrow(()->new IllegalArgumentException("No raid with date "+date+" exists"));
+    }
 }
