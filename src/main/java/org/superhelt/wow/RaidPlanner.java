@@ -43,7 +43,8 @@ public class RaidPlanner {
                     case "addPlayer":
                         addPlayer(request, raid);
                         break;
-
+                    case "removePlayer":
+                        removePlayer(request, raid);
                 }
             }
             planRaid(response.getWriter(), raid);
@@ -53,6 +54,13 @@ public class RaidPlanner {
                 planBoss(raid, Encounter.Boss.valueOf(boss), response.getWriter());
             }
         }
+    }
+
+    private void removePlayer(HttpServletRequest request, Raid raid) {
+        Encounter.Boss boss = Encounter.Boss.valueOf(request.getParameter("boss"));
+        Player player = playerDao.getByName(request.getParameter("player"));
+
+        raid.getEncounter(boss).removePlayer(player);
     }
 
     private void addPlayer(HttpServletRequest request, Raid raid) {
@@ -103,7 +111,8 @@ public class RaidPlanner {
 
     private void printPlayersOfRole(Raid raid, Encounter.Boss boss, PrintWriter writer, Encounter encounter, List<Player> players, Player.Role role) {
         writer.format("<h2>%s</h2>", role);
-        encounter.getPlayersOfRole(role).forEach(p->writer.format("%s<br/>\n", p.name));
+        encounter.getPlayersOfRole(role).forEach(p->writer.format("<a href=\"?raid=%s&boss=%s&action=removePlayer&player=%s\">%s</a><br/>\n",
+                dateFormatter.format(raid.start), boss, p.name, p.name));
 
 
         long numAvailablePlayers = players.stream().filter(p->p.hasRole(role)).filter(p->!encounter.isParticipating(p)).count();

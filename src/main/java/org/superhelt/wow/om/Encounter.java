@@ -28,6 +28,12 @@ public class Encounter {
         participants.get(role).add(player);
     }
 
+    public void removePlayer(Player player) {
+        for(Player.Role role : participants.keySet()) {
+            participants.get(role).remove(player);
+        }
+    }
+
     public enum Boss {
         Goroth, Inquisition, Harjatan, Sisters, DesolateHost, Mistress, Maiden, Avatar, KilJaeden
     }
