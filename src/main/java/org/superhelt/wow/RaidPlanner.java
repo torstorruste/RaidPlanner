@@ -104,18 +104,24 @@ public class RaidPlanner {
     private void printPlayersOfRole(Raid raid, Encounter.Boss boss, PrintWriter writer, Encounter encounter, List<Player> players, Player.Role role) {
         writer.format("<h2>%s</h2>", role);
         encounter.getPlayersOfRole(role).forEach(p->writer.format("%s<br/>\n", p.name));
-        writer.format("<form method=\"post\" action=\"planRaid\">");
-        writer.format("<input type=\"hidden\" name=\"action\" value=\"addPlayer\"/>");
-        writer.format("<input type=\"hidden\" name=\"raid\" value=\"%s\"/>", dateFormatter.format(raid.start));
-        writer.format("<input type=\"hidden\" name=\"boss\" value=\"%s\"/>", boss);
-        writer.format("<input type=\"hidden\" name=\"role\" value=\"%s\"/>", role);
-        writer.format("<select name=\"player\">");
 
-        players.stream().filter(p->!encounter.isParticipating(p)).filter(p->p.hasRole(role)).forEach(p->{
-            writer.format("<option value=\"%s\">%s</option>", p.name, p.name);
-        });
-        writer.format("</select><input type=\"submit\">");
-        writer.format("</form>");
+
+        long numAvailablePlayers = players.stream().filter(p->p.hasRole(role)).filter(p->!encounter.isParticipating(p)).count();
+
+        if(numAvailablePlayers>0) {
+            writer.format("<form method=\"post\" action=\"planRaid\">");
+            writer.format("<input type=\"hidden\" name=\"action\" value=\"addPlayer\"/>");
+            writer.format("<input type=\"hidden\" name=\"raid\" value=\"%s\"/>", dateFormatter.format(raid.start));
+            writer.format("<input type=\"hidden\" name=\"boss\" value=\"%s\"/>", boss);
+            writer.format("<input type=\"hidden\" name=\"role\" value=\"%s\"/>", role);
+            writer.format("<select name=\"player\">");
+
+            players.stream().filter(p -> !encounter.isParticipating(p)).filter(p -> p.hasRole(role)).forEach(p -> {
+                writer.format("<option value=\"%s\">%s</option>", p.name, p.name);
+            });
+            writer.format("</select><input type=\"submit\">");
+            writer.format("</form>");
+        }
     }
 
     public void listRaids(PrintWriter writer) {
