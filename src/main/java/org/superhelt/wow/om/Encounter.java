@@ -34,6 +34,14 @@ public class Encounter {
         }
     }
 
+    public int numParticipants() {
+        int num = 0;
+        for(List<Player> players : participants.values()) {
+            num += players.size();
+        }
+        return num;
+    }
+
     public enum Boss {
         Goroth, Inquisition, Harjatan, Sisters, DesolateHost, Mistress, Maiden, Avatar, KilJaeden
     }

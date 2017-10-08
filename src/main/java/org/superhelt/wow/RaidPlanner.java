@@ -98,10 +98,10 @@ public class RaidPlanner {
     }
 
     private void planBoss(Raid raid, Encounter.Boss boss, PrintWriter writer) {
-        writer.format("<div style=\"float: left;\"><h1>%s</h1>", boss);
-
         Encounter encounter = raid.getEncounter(boss);
         List<Player> players = playerDao.getPlayers();
+        writer.format("<div style=\"float: left;\"><h1>%s (%d)</h1>", boss, encounter.numParticipants());
+
 
         printPlayersOfRole(raid, boss, writer, encounter, players, Player.Role.Tank);
         printPlayersOfRole(raid, boss, writer, encounter, players, Player.Role.Healer);
@@ -110,9 +110,12 @@ public class RaidPlanner {
     }
 
     private void printPlayersOfRole(Raid raid, Encounter.Boss boss, PrintWriter writer, Encounter encounter, List<Player> players, Player.Role role) {
-        writer.format("<h2>%s</h2>", role);
-        encounter.getPlayersOfRole(role).forEach(p->writer.format("<a href=\"?raid=%s&boss=%s&action=removePlayer&player=%s\">%s</a><br/>\n",
-                dateFormatter.format(raid.start), boss, p.name, p.name));
+        int numWithRole = encounter.getPlayersOfRole(role).size();
+        if(numWithRole>0) {
+            writer.format("<h2>%s (%d)</h2>", role, numWithRole);
+        } else {
+            writer.format("<h2>%s</h2>", role);
+        }
 
 
         long numAvailablePlayers = players.stream().filter(p->p.hasRole(role)).filter(p->!encounter.isParticipating(p)).count();
@@ -131,6 +134,9 @@ public class RaidPlanner {
             writer.format("</select><input type=\"submit\">");
             writer.format("</form>");
         }
+
+        encounter.getPlayersOfRole(role).forEach(p->writer.format("<a href=\"?raid=%s&boss=%s&action=removePlayer&player=%s\">%s</a><br/>\n",
+                dateFormatter.format(raid.start), boss, p.name, p.name));
     }
 
     public void listRaids(PrintWriter writer) {

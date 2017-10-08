@@ -19,7 +19,7 @@ public class Player {
     }
 
     public enum PlayerClass {
-        Deathknight, Druid, Paladin, Priest, Rogue, Warrior
+        Deathknight, DemonHunter, Druid, Paladin, Priest, Rogue, Warrior, Shaman, Warlock, Mage, Hunter
     }
 
     public enum Role {
