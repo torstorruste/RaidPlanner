@@ -29,7 +29,7 @@ public class HttpHandler extends AbstractHandler {
             serveCss(response);
         } else {
             EventViewer eventViewer = new EventViewer(raidDao, playerDao);
-            RaidPlanner raidPlanner = new RaidPlanner(raidDao);
+            RaidPlanner raidPlanner = new RaidPlanner(raidDao, playerDao);
 
             response.setContentType("text/html;charset=utf-8");
             response.setStatus(HttpServletResponse.SC_OK);
