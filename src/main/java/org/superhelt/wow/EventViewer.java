@@ -3,6 +3,8 @@ package org.superhelt.wow;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.AbstractHandler;
+import org.superhelt.wow.dao.PlayerDao;
+import org.superhelt.wow.dao.RaidDao;
 import org.superhelt.wow.om.Event;
 import org.superhelt.wow.om.Player;
 import org.superhelt.wow.om.Raid;
@@ -21,36 +23,8 @@ import java.util.stream.Collectors;
 
 public class EventViewer extends AbstractHandler {
 
-    private final List<Raid> raids = new ArrayList<>();
-    private final List<Player> players = new ArrayList<>();
-
     private static final DateTimeFormatter dateFormatter = DateTimeFormatter.ISO_LOCAL_DATE;
     private static final DateTimeFormatter timeFormatter = DateTimeFormatter.ISO_LOCAL_TIME;
-
-    public EventViewer() {
-        players.add(new Player("Brew", Player.PlayerClass.Druid));
-        players.add(new Player("Dunder", Player.PlayerClass.Priest));
-        players.add(new Player("Furo", Player.PlayerClass.Paladin));
-        players.add(new Player("Lashin", Player.PlayerClass.Deathknight));
-        players.add(new Player("Mattis", Player.PlayerClass.Druid));
-        players.add(new Player("Rza", Player.PlayerClass.Warrior));
-        players.add(new Player("Slip", Player.PlayerClass.Rogue));
-        players.add(new Player("Zikura", Player.PlayerClass.Druid));
-
-        List<Event> events = new ArrayList<>();
-        events.add(new Event(LocalTime.of(20, 0), players.get(1), Event.EventType.NOSHOW, "Unable to attend due to IRL-issues"));
-        raids.add(new Raid(LocalDate.of(2017, 10, 1), events));
-
-        events = new ArrayList<>();
-        events.add(new Event(LocalTime.of(20, 30), players.get(3), Event.EventType.LATE, "Arrived half an hour late"));
-        events.add(new Event(LocalTime.of(21, 30), players.get(5), Event.EventType.LATE, "Arrived at break"));
-        events.add(new Event(LocalTime.of(20, 0), players.get(0), Event.EventType.BENCH, "Chosen for bench"));
-        raids.add(new Raid(LocalDate.of(2017,10,2), events));
-
-        events = new ArrayList<>();
-        events.add(new Event(LocalTime.of(22,30), players.get(0), Event.EventType.SWAP, "Could not get microphone to work"));
-        raids.add(new Raid(LocalDate.of(2017, 10, 4), events));
-    }
 
     @Override
     public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
@@ -74,6 +48,8 @@ public class EventViewer extends AbstractHandler {
                 case "/showRaid":
                     showRaid(request, writer);
                     break;
+                case "/planRaid":
+                    new RaidPlanner().planRaid(request, response);
                 default:
                     printEvents(writer);
             }
@@ -96,6 +72,8 @@ public class EventViewer extends AbstractHandler {
 
     private void showRaid(HttpServletRequest request, PrintWriter writer) {
         LocalDate raidStart = LocalDate.parse(request.getParameter("raid"), dateFormatter);
+        List<Raid> raids = new RaidDao().getRaids();
+        List<Player> players = new PlayerDao().getPlayers();
         raids.stream().filter(r->r.start.equals(raidStart)).forEach(r->{
             writer.format("<table><tr><th>%s</th></tr>", dateFormatter.format(raidStart));
 
@@ -111,6 +89,8 @@ public class EventViewer extends AbstractHandler {
     private void addEvent(HttpServletRequest request, PrintWriter writer) {
         if("GET".equals(request.getMethod())) {
             String raid = request.getParameter("raid");
+            List<Raid> raids = new RaidDao().getRaids();
+            List<Player> players = new PlayerDao().getPlayers();
             if(raid!=null) {
                 writer.format("<form method=\"post\"><input type=\"text\" name=\"time\" value=\"%s\"/>", timeFormatter.format(LocalTime.now()));
                 writer.print("<select name=\"player\">");
@@ -137,6 +117,8 @@ public class EventViewer extends AbstractHandler {
     }
 
     private void addRaid(HttpServletRequest request, PrintWriter writer) throws IOException {
+        List<Raid> raids = new RaidDao().getRaids();
+        List<Player> players = new PlayerDao().getPlayers();
         if("GET".equals(request.getMethod())) {
             writer.format("<form method=\"post\"><input type=\"text\" name=\"date\" value=\"%s\"/><input type=\"submit\"/></form>", dateFormatter.format(LocalDate.now()));
         } else {
@@ -151,6 +133,8 @@ public class EventViewer extends AbstractHandler {
     }
 
     private void printEvents(PrintWriter writer) throws IOException {
+        List<Raid> raids = new RaidDao().getRaids();
+        List<Player> players = new PlayerDao().getPlayers();
         writer.print("<table><tr><th>Player</th>");
         for(Raid raid : raids) {
             writer.format("<th><a href=\"/showRaid?raid=%s\">%s</a></th>", dateFormatter.format(raid.start), dateFormatter.format(raid.start));
