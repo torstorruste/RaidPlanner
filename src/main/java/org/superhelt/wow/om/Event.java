@@ -17,6 +17,6 @@ public class Event {
     }
 
     public enum EventType {
-        BENCH, NOSHOW, SLACK, SWAP, LATE
+        LATE, NOSHOW, BENCH, SWAP, PERFORMANCE
     }
 }

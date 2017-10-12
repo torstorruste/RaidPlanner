@@ -1,11 +1,5 @@
-.NOSHOW { background-color: #f46541; }
-.BENCH { background-color: #41cdf4; }
-.LATE { background-color: #f49542; }
-.SWAP { background-color: #9542f4; }
-
-
 body {background-color: #7D7676;}
-
+input {background-color: #EEEEEE;}
 
 .demonhunter {color: #A330C9}
 .deathknight {color: #C41F3B}
@@ -19,3 +13,9 @@ body {background-color: #7D7676;}
 .shaman {color: #0070DE}
 .warlock {color: #9482C9}
 .warrior {color: #C79C6E}
+
+.LATE { background-color: #FF902E}
+.NOSHOW { background-color: #FC3838}
+.BENCH { background-color: #34EBD8}
+.SWAP { background-color: #345FEB}
+.PERFORMANCE {background-color: #E5EB34}

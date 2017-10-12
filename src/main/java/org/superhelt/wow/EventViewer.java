@@ -26,31 +26,58 @@ public class EventViewer {
         this.playerDao = playerDao;
     }
 
-    public void showRaid(HttpServletRequest request, PrintWriter writer) {
-        LocalDate raidStart = LocalDate.parse(request.getParameter("raid"), dateFormatter);
-        List<Player> players = playerDao.getPlayers();
-        Raid raid =  raidDao.getRaid(raidStart);
+    public void printEvents(HttpServletRequest request, PrintWriter writer) throws IOException {
 
-        writer.format("<table><tr><th>%s</th></tr>", dateFormatter.format(raidStart));
+        String raid = request.getParameter("raid");
+        String player = request.getParameter("player");
+
+        if(raid==null && player==null) {
+            printAllEvents(writer);
+        } else if(raid!=null) {
+            LocalDate raidStart = LocalDate.parse(request.getParameter("raid"), dateFormatter);
+            printRaid(writer, raidDao.getRaid(raidStart));
+        } else if(player!=null) {
+            printPlayer(writer, playerDao.getByName(player));
+        }
+    }
+
+    public void printPlayer(PrintWriter writer, Player player) {
+        writer.format("<table><tr><th>%s</th></tr>", player.classString());
+
+        raidDao.getRaids().stream().filter(r->r.events.stream().anyMatch(e->e.player.equals(player))).forEach(r-> {
+                StringBuilder content = new StringBuilder();
+                r.events.stream().filter(e->e.player.equals(player)).forEach(e->content.append(e.type).append(": ").append(e.comment));
+
+                writer.format("<tr><td>%s</td><td>%s</td></tr>", r.start, content);
+            }
+        );
+
+        writer.format("</table>");
+    }
+
+    public void printRaid(PrintWriter writer, Raid raid) {
+        List<Player> players = playerDao.getPlayers();
+        writer.format("<table><tr><th>%s</th></tr>", dateFormatter.format(raid.start));
 
         players.forEach(p->{
             StringBuilder content = new StringBuilder();
             raid.events.stream().filter(e->e.player.equals(p)).forEach(e->content.append(e.type).append(": ").append(e.comment));
 
-            writer.format("<tr class=\"%s\"><td>%s</td><td>%s</td></tr>", p.playerClass, p.name, content);
+            writer.format("<tr><td class=\"%s\">%s</td><td>%s</td></tr>", p.playerClass.toString().toLowerCase(), p.name, content);
         });
+        writer.println("</table>");
     }
 
-    public void printEvents(PrintWriter writer) throws IOException {
+    public void printAllEvents(PrintWriter writer) {
         List<Raid> raids = raidDao.getRaids();
         List<Player> players = playerDao.getPlayers();
         writer.print("<table><tr><th>Player</th>");
         for(Raid raid : raids) {
-            writer.format("<th><a href=\"/showRaid?raid=%s\">%s</a></th>", dateFormatter.format(raid.start), dateFormatter.format(raid.start));
+            writer.format("<th><a href=\"?raid=%s\">%s</a></th>", dateFormatter.format(raid.start), dateFormatter.format(raid.start));
         }
         writer.println("</tr>");
         for(Player player : players) {
-            writer.format("<tr><th class='%s'>%s</th>", player.playerClass, player.name);
+            writer.format("<tr><td><a href=\"?player=%s\">%s</a></td>", player.name, player.classString());
 
             for(Raid raid : raids) {
                 StringBuilder classes = new StringBuilder();

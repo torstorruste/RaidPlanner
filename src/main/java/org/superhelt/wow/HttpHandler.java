@@ -40,14 +40,11 @@ public class HttpHandler extends AbstractHandler {
             writer.print("<!DOCTYPE html><html><head><link rel=\"stylesheet\" type=\"text/css\" href=\"styles.css\"/><title>ANE PlayerNotes</title></head><body>");
 
             switch (request.getRequestURI()) {
-                case "/showRaid":
-                    eventViewer.showRaid(request, writer);
-                    break;
                 case "/planRaid":
                     raidPlanner.planRaids(request, response);
                     break;
                 case "/showEvents":
-                    eventViewer.printEvents(writer);
+                    eventViewer.printEvents(request, writer);
                     break;
                 default:
                     raidInviter.showSignupPage(request, response);
