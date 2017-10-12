@@ -3,6 +3,7 @@ package org.superhelt.wow.dao;
 import org.superhelt.wow.om.Player;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 import static org.superhelt.wow.om.Player.PlayerClass.*;
@@ -41,6 +42,8 @@ public class PlayerDao {
         players.add(new Player("Mattis", Druid, Ranged, Tank));
         players.add(new Player("Zikura", Druid, Ranged, Healer, Tank));
         players.add(new Player("Jorgypewpew", Hunter, Ranged));
+
+        players.sort(Comparator.comparing(o -> o.name));
     }
 
     public List<Player> getPlayers() {

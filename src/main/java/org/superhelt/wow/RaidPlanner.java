@@ -13,7 +13,9 @@ import java.io.PrintWriter;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class RaidPlanner {
 
@@ -28,8 +30,8 @@ public class RaidPlanner {
     }
 
     public void planRaids(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        if(request.getParameter("raid")==null) listRaids(response.getWriter());
-        else {
+        listRaids(response.getWriter());
+        if(request.getParameter("raid")!=null) {
             LocalDate raidStart = LocalDate.parse(request.getParameter("raid"), dateFormatter);
             Raid raid = raidDao.getRaid(raidStart);
 
@@ -78,17 +80,20 @@ public class RaidPlanner {
     }
 
     private void planRaid(PrintWriter writer, Raid raid) {
-        writer.format("<div style=\"float: left;\"><h1>%s</h1>", dateFormatter.format(raid.start));
+        writer.format("<div style=\"float: left; width: 300px;\"><h1>%s</h1>", dateFormatter.format(raid.start));
         writer.format("<form method=\"post\" action=\"planRaid\"><input type=\"hidden\" name=\"raid\" value=\"%s\"/>", dateFormatter.format(raid.start));
         writer.println("<input type=\"hidden\" name=\"action\" value=\"addEncounter\"/>");
-        writer.println("Add encounter: <select name=\"boss\">");
-        for(Encounter.Boss boss : Encounter.Boss.values()) {
-            if(!raid.containsBoss(boss)) {
-                writer.format("<option value=\"%s\">%s</option>", boss, boss);
+
+        if(Arrays.stream(Encounter.Boss.values()).filter(b->!raid.containsBoss(b)).count()>0) {
+            writer.println("Add encounter: <select name=\"boss\">");
+            for (Encounter.Boss boss : Encounter.Boss.values()) {
+                if (!raid.containsBoss(boss)) {
+                    writer.format("<option value=\"%s\">%s</option>", boss, boss);
+                }
             }
+            writer.println("</select><input type=\"submit\"/>");
+            writer.println("</form>");
         }
-        writer.println("</select><input type=\"submit\"/>");
-        writer.println("</form>");
 
         writer.println("<h1>Encounters</h1>");
         raid.encounters.forEach(e->{
@@ -99,7 +104,7 @@ public class RaidPlanner {
 
     private void planBoss(Raid raid, Encounter.Boss boss, PrintWriter writer) {
         Encounter encounter = raid.getEncounter(boss);
-        List<Player> players = playerDao.getPlayers();
+        List<Player> players = raid.acceptedPlayers();
         writer.format("<div style=\"float: left;\"><h1>%s (%d)</h1>", boss, encounter.numParticipants());
 
 
@@ -141,7 +146,8 @@ public class RaidPlanner {
 
     public void listRaids(PrintWriter writer) {
         List<Raid> raids = raidDao.getRaids();
-
+        writer.println("<div style=\"float: left; width: 200px\">");
         raids.forEach(r->writer.format("<a href=\"?raid=%s\">%s</a><br/>\n", r.start, r.start));
+        writer.println("</div>");
     }
 }
