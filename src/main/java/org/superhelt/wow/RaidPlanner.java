@@ -196,6 +196,23 @@ public class RaidPlanner {
         printPlayersOfRole(raid, boss, writer, encounter, players, Player.Role.Melee);
         printPlayersOfRole(raid, boss, writer, encounter, players, Player.Role.Ranged);
 
+        writer.println("<table><tr><th>Player</th><th>Tank</th><th>Healer</th><th>Melee</th><th>Ranged</th></tr>");
+        for(Player player : players) {
+            if(!encounter.isParticipating(player)) {
+                writer.format("<tr><td>%s</td>", player.classString());
+                for (Player.Role role : Player.Role.values()) {
+                    if (player.roles.contains(role)) {
+                        writer.format("<td><a href=\"?action=addPlayer&raid=%s&boss=%s&role=%s&player=%s\">%s</a></td>",
+                                dateFormatter.format(raid.start), boss, role, player.name, role);
+                    } else {
+                        writer.println("<td></td>");
+                    }
+                }
+                writer.println("</tr>");
+            }
+        }
+        writer.println("</table>");
+
         writer.println("</div>");
     }
 
@@ -205,24 +222,6 @@ public class RaidPlanner {
             writer.format("<h2>%s (%d)</h2>", role, numWithRole);
         } else {
             writer.format("<h2>%s</h2>", role);
-        }
-
-
-        long numAvailablePlayers = players.stream().filter(p->p.hasRole(role)).filter(p->!encounter.isParticipating(p)).count();
-
-        if(numAvailablePlayers>0) {
-            writer.format("<form method=\"post\" action=\"planRaid\">");
-            writer.format("<input type=\"hidden\" name=\"action\" value=\"addPlayer\"/>");
-            writer.format("<input type=\"hidden\" name=\"raid\" value=\"%s\"/>", dateFormatter.format(raid.start));
-            writer.format("<input type=\"hidden\" name=\"boss\" value=\"%s\"/>", boss);
-            writer.format("<input type=\"hidden\" name=\"role\" value=\"%s\"/>", role);
-            writer.format("<select name=\"player\">");
-
-            players.stream().filter(p -> !encounter.isParticipating(p)).filter(p -> p.hasRole(role)).forEach(p -> {
-                writer.format("<option value=\"%s\">%s</option>", p.name, p.name);
-            });
-            writer.format("</select><input type=\"submit\">");
-            writer.format("</form>");
         }
 
         encounter.getPlayersOfRole(role).forEach(p->writer.format("<a href=\"?raid=%s&boss=%s&action=removePlayer&player=%s\">%s</a><br/>\n",
