@@ -29,6 +29,6 @@ public class Raid {
     }
 
     public List<Player> acceptedPlayers() {
-        return this.signups.stream().map(s->s.player).distinct().collect(Collectors.toList());
+        return this.signups.stream().filter(s->s.type==Signup.Type.ACCEPTED).map(s->s.player).distinct().collect(Collectors.toList());
     }
 }

@@ -1,0 +1,21 @@
+.NOSHOW { background-color: #f46541; }
+.BENCH { background-color: #41cdf4; }
+.LATE { background-color: #f49542; }
+.SWAP { background-color: #9542f4; }
+
+
+body {background-color: #7D7676;}
+
+
+.demonhunter {color: #A330C9}
+.deathknight {color: #C41F3B}
+.druid {color: #FF7D0A}
+.hunter {color: #ABD473}
+.mage {color: #69CCF0}
+.monk {color: #00FF96}
+.paladin {color: #F58CBA}
+.priest {color: #FFFFFF}
+.rogue {color: #FFF569}
+.shaman {color: #0070DE}
+.warlock {color: #9482C9}
+.warrior {color: #C79C6E}

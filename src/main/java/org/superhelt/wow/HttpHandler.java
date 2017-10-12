@@ -10,6 +10,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.PrintWriter;
 
 public class HttpHandler extends AbstractHandler {
@@ -26,7 +27,7 @@ public class HttpHandler extends AbstractHandler {
     public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
         baseRequest.setHandled(true);
         if(request.getRequestURI().endsWith(".css")) {
-            serveCss(response);
+            serveCss(request, response);
         } else {
             EventViewer eventViewer = new EventViewer(raidDao, playerDao);
             RaidPlanner raidPlanner = new RaidPlanner(raidDao, playerDao);
@@ -39,39 +40,37 @@ public class HttpHandler extends AbstractHandler {
             writer.print("<!DOCTYPE html><html><head><link rel=\"stylesheet\" type=\"text/css\" href=\"styles.css\"/><title>ANE PlayerNotes</title></head><body>");
 
             switch (request.getRequestURI()) {
-                case "/addEvent":
-                    eventViewer.addEvent(request, writer);
-                    break;
-                case "/addRaid":
-                    eventViewer.addRaid(request, writer);
-                    break;
                 case "/showRaid":
                     eventViewer.showRaid(request, writer);
                     break;
                 case "/planRaid":
                     raidPlanner.planRaids(request, response);
                     break;
-                case "/showSignupPage":
-                    raidInviter.showSignupPage(request, response);
+                case "/showEvents":
+                    eventViewer.printEvents(writer);
                     break;
                 default:
-                    eventViewer.printEvents(writer);
+                    raidInviter.showSignupPage(request, response);
             }
 
             writer.print("</body></html>");
         }
     }
 
-    private void serveCss(HttpServletResponse response) throws IOException {
-        response.setContentType("text/css");
-        response.setStatus(HttpServletResponse.SC_OK);
+    private void serveCss(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        String fileName = request.getRequestURI();
+        InputStream is = getClass().getResourceAsStream(fileName);
 
-        PrintWriter writer = response.getWriter();
-
-        writer.println(".NOSHOW { background-color: #f46541; }");
-        writer.println(".BENCH { background-color: #41cdf4; }");
-        writer.println(".LATE { background-color: #f49542; }");
-        writer.println(".SWAP { background-color: #9542f4; }");
+        if(is!=null) {
+            response.setContentType("text/css");
+            response.setStatus(HttpServletResponse.SC_OK);
+            int next;
+            while ((next = is.read()) != -1) {
+                response.getWriter().write(next);
+            }
+        } else {
+            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+        }
     }
 
     public static void main(String[] args) throws Exception {

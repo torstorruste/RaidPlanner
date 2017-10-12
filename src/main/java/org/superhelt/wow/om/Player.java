@@ -18,6 +18,10 @@ public class Player {
         return roles.stream().anyMatch(r->r==role);
     }
 
+    public String classString() {
+        return String.format("<span class=\"%s\">%s</span>", playerClass.toString().toLowerCase(), name);
+    }
+
     public enum PlayerClass {
         Deathknight, DemonHunter, Druid, Paladin, Priest, Rogue, Warrior, Shaman, Warlock, Mage, Hunter
     }

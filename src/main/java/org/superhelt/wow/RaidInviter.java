@@ -49,17 +49,17 @@ public class RaidInviter {
     }
 
     private void printSignups(PrintWriter writer, Raid raid) {
-        writer.println("<div style=\"float: left;\"><ul>");
+        writer.println("<div style=\"float: left;\"><h1>Signups</h1><ul>");
         for(Signup signup : raid.signups) {
             switch(signup.type) {
                 case ACCEPTED:
-                    writer.format("<li>%s signed up for the raid</li>", signup.player.name);
+                    writer.format("<li>%s signed up for the raid</li>", signup.player.classString());
                     break;
                 case TENTATIVE:
-                    writer.format("<li>%s is tentative with the following comment, %s", signup.player.name, signup.comment);
+                    writer.format("<li>%s is tentative with the following comment: %s", signup.player.classString(), signup.comment);
                     break;
                 case DECLINED:
-                    writer.format("<li>%s declined the raid with the following comment, %s", signup.player.name, signup.comment);
+                    writer.format("<li>%s declined the raid with the following comment: %s", signup.player.classString(), signup.comment);
             }
         }
         writer.println("</ul></div>");
@@ -96,7 +96,7 @@ public class RaidInviter {
 
     public void listRaids(PrintWriter writer) {
         List<Raid> raids = raidDao.getRaids();
-        writer.println("<div style=\"float: left; width: 200px\">");
+        writer.println("<div style=\"float: left; width: 200px\"><h1>Raids</h1>");
         raids.forEach(r->writer.format("<a href=\"?raid=%s\">%s</a><br/>\n", r.start, r.start));
         writer.println("</div>");
     }
