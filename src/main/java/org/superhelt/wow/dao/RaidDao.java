@@ -1,44 +1,59 @@
 package org.superhelt.wow.dao;
 
-import org.superhelt.wow.om.Event;
-import org.superhelt.wow.om.Player;
 import org.superhelt.wow.om.Raid;
 
+import java.sql.*;
 import java.time.LocalDate;
-import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.TemporalAccessor;
 import java.util.ArrayList;
 import java.util.List;
 
 public class RaidDao {
 
-    public static List<Raid> raids = new ArrayList<>();
+    private static final DateTimeFormatter df = DateTimeFormatter.ISO_LOCAL_DATE;
 
-    static {
-        List<Player> players = new PlayerDao().getPlayers();
+    private final Connection conn;
 
-        List<Event> events = new ArrayList<>();
-        events.add(new Event(LocalTime.of(20, 0), players.get(1), Event.EventType.NOSHOW, "Unable to attend due to IRL-issues"));
-        raids.add(new Raid(LocalDate.of(2017, 10, 1), events));
-
-        events = new ArrayList<>();
-        events.add(new Event(LocalTime.of(20, 30), players.get(3), Event.EventType.LATE, "Arrived half an hour late"));
-        events.add(new Event(LocalTime.of(21, 30), players.get(5), Event.EventType.LATE, "Arrived at break"));
-        events.add(new Event(LocalTime.of(20, 0), players.get(0), Event.EventType.BENCH, "Chosen for bench"));
-        raids.add(new Raid(LocalDate.of(2017,10,2), events));
-
-        events = new ArrayList<>();
-        events.add(new Event(LocalTime.of(22,30), players.get(0), Event.EventType.SWAP, "Could not get microphone to work"));
-        raids.add(new Raid(LocalDate.of(2017, 10, 4), events));
+    public RaidDao(Connection connection) {
+        conn = connection;
     }
 
-
     public List<Raid> getRaids() {
+        List<Raid> raids = new ArrayList<>();
+        try(Statement st = conn.createStatement();
+            ResultSet rs = st.executeQuery("select * from raid")) {
+            while(rs.next()) {
+                raids.add(new Raid(LocalDate.parse(rs.getString("start"), df)));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
         return raids;
     }
 
     public Raid getRaid(LocalDate date) {
-        return raids.stream()
-                .filter(r->r.start.equals(date))
-                .findFirst().orElseThrow(()->new IllegalArgumentException("No raid with date "+date+" exists"));
+
+        try(PreparedStatement st = conn.prepareStatement("select * from raid where start=?")) {
+            st.setString(1, df.format(date));
+            try(ResultSet rs = st.executeQuery()) {
+                while(rs.next()) {
+                    return new Raid(LocalDate.parse(rs.getString("start"), df));
+                }
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        throw new IllegalArgumentException("Unknown raid "+date);
+    }
+
+    public void addRaid(Raid raid) {
+        try(PreparedStatement st = conn.prepareStatement("insert into raid values (?)")) {
+            st.setString(1, df.format(raid.start));
+            st.executeUpdate();
+        } catch (SQLException e) {
+            System.out.println("Unable to create raid "+raid.start);
+        }
     }
 }

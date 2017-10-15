@@ -13,9 +13,9 @@ public class Raid {
     public final List<Signup> signups;
 
 
-    public Raid(LocalDate start, List<Event> events) {
+    public Raid(LocalDate start) {
         this.start = start;
-        this.events = events;
+        this.events = new ArrayList<>();
         this.encounters = new ArrayList<>();
         this.signups = new ArrayList<>();
     }

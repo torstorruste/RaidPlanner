@@ -1,6 +1,5 @@
 package org.superhelt.wow.om;
 
-import java.util.Arrays;
 import java.util.List;
 
 public class Player {
@@ -8,10 +7,10 @@ public class Player {
     public final PlayerClass playerClass;
     public final List<Role> roles;
 
-    public Player(String name, PlayerClass playerClass, Role... roles) {
+    public Player(String name, PlayerClass playerClass, List<Role> roles) {
         this.name = name;
         this.playerClass = playerClass;
-        this.roles = Arrays.asList(roles);
+        this.roles = roles;
     }
 
     public boolean hasRole(Role role) {

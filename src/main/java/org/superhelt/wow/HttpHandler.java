@@ -3,6 +3,7 @@ package org.superhelt.wow;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.AbstractHandler;
+import org.flywaydb.core.Flyway;
 import org.superhelt.wow.dao.PlayerDao;
 import org.superhelt.wow.dao.RaidDao;
 
@@ -12,6 +13,8 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
+import java.sql.Connection;
+import java.sql.DriverManager;
 
 public class HttpHandler extends AbstractHandler {
 
@@ -72,7 +75,14 @@ public class HttpHandler extends AbstractHandler {
 
     public static void main(String[] args) throws Exception {
         Server server = new Server(8080);
-        server.setHandler(new HttpHandler(new RaidDao(), new PlayerDao()));
+
+        Connection connection = DriverManager.getConnection("jdbc:sqlite:raidplanner.db");
+        Flyway flyway = new Flyway();
+        flyway.setDataSource("jdbc:sqlite:raidplanner.db", "", "");
+        flyway.migrate();
+
+
+        server.setHandler(new HttpHandler(new RaidDao(connection), new PlayerDao(connection)));
 
         server.start();
         server.join();

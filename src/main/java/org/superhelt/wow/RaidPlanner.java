@@ -137,7 +137,7 @@ public class RaidPlanner {
             writer.format("<h2>Raid at %s already exists</h2>", dateFormatter.format(date));
         } else {
             writer.format("<h2>Adding raid: %s</h2>", dateFormatter.format(date));
-            raids.add(new Raid(date, new ArrayList<>()));
+            raidDao.addRaid(new Raid(date));
         }
     }
 

@@ -2,56 +2,64 @@ package org.superhelt.wow.dao;
 
 import org.superhelt.wow.om.Player;
 
+import java.sql.*;
 import java.util.ArrayList;
-import java.util.Comparator;
+import java.util.Arrays;
 import java.util.List;
-
-import static org.superhelt.wow.om.Player.PlayerClass.*;
-import static org.superhelt.wow.om.Player.Role.*;
+import java.util.stream.Collectors;
 
 public class PlayerDao {
 
-    public static List<Player> players = new ArrayList<>();
+    private final Connection conn;
 
-    static {
-        players.add(new Player("Twiniings", Druid, Tank));
-        players.add(new Player("Gussie", Paladin, Tank));
-
-        players.add(new Player("Lashin", Deathknight, Melee));
-        players.add(new Player("Talltheuh", Deathknight, Melee, Tank));
-        players.add(new Player("Drahc", Druid, Tank, Melee));
-        players.add(new Player("Frozzenfire", Druid, Tank, Melee));
-        players.add(new Player("Oxymortisai", Warrior, Melee));
-        players.add(new Player("Rza", Warrior, Melee));
-        players.add(new Player("Nestyyw", Warrior, Melee));
-        players.add(new Player("Eliias", Rogue, Melee));
-        players.add(new Player("Slip", Rogue, Melee));
-        players.add(new Player("Bujumbura", DemonHunter, Melee));
-
-        players.add(new Player("Rathhal", Druid, Healer, Ranged));
-        players.add(new Player("Brew", Druid, Healer));
-        players.add(new Player("Furo", Paladin, Healer));
-        players.add(new Player("Cowstyle", Priest, Healer, Ranged));
-        players.add(new Player("Drizz", Shaman, Healer));
-
-        players.add(new Player("Dunder", Priest, Ranged));
-        players.add(new Player("Crispy", Priest, Ranged));
-        players.add(new Player("Gainsborough", Warlock, Ranged));
-        players.add(new Player("Serthii", Warlock, Ranged));
-        players.add(new Player("Infuszes", Mage, Ranged));
-        players.add(new Player("Mattis", Druid, Ranged, Tank));
-        players.add(new Player("Zikura", Druid, Ranged, Healer, Tank));
-        players.add(new Player("Jorgypewpew", Hunter, Ranged));
-
-        players.sort(Comparator.comparing(o -> o.name));
+    public PlayerDao(Connection connection) {
+        conn = connection;
     }
 
     public List<Player> getPlayers() {
+        List<Player> players = new ArrayList<>();
+
+        try(Statement st = conn.createStatement();
+            ResultSet rs = st.executeQuery("select * from player")) {
+            while(rs.next()) {
+                String name = rs.getString("name");
+                Player.PlayerClass playerClass = Player.PlayerClass.valueOf(rs.getString("class"));
+                List<Player.Role> roles = getRoles(rs);
+
+                players.add(new Player(name, playerClass, roles));
+            }
+
+        } catch (SQLException e) {
+            System.out.println("Unable to find players");
+        }
+
         return players;
     }
 
+    private List<Player.Role> getRoles(ResultSet rs) throws SQLException {
+        String[] roles = rs.getString("roles").split(",");
+
+        return Arrays.stream(roles).map(s-> Player.Role.valueOf(s.trim())).collect(Collectors.toList());
+
+    }
+
     public Player getByName(String name) {
-        return players.stream().filter(p->p.name.equals(name)).findFirst().orElseThrow(()->new IllegalArgumentException("No player with name "+name));
+        try(PreparedStatement st = conn.prepareStatement("select * from player where name=?")) {
+            st.setString(1, name);
+
+            try(ResultSet rs = st.executeQuery()) {
+                while (rs.next()) {
+                    Player.PlayerClass playerClass = Player.PlayerClass.valueOf(rs.getString("class"));
+                    List<Player.Role> roles = getRoles(rs);
+
+                    return new Player(name, playerClass, roles);
+                }
+            }
+        } catch (SQLException e) {
+            System.out.println("Unable to find players");
+        }
+
+        throw new IllegalArgumentException("Unknown player "+name);
     }
 }
 
