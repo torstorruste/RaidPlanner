@@ -36,11 +36,13 @@ public class RaidViewer {
             LocalDate raidStart = LocalDate.parse(request.getParameter("raid"), dateFormatter);
             Raid raid = raidDao.getRaid(raidStart);
 
-            for(Encounter encounter : raid.encounters) {
-                showBoss(response.getWriter(), raid, encounter);
-            }
+            if(raid.isFinalized()) {
+                for (Encounter encounter : raid.encounters) {
+                    showBoss(response.getWriter(), raid, encounter);
+                }
 
-            listRaidInfo(raid, response.getWriter());
+                listRaidInfo(raid, response.getWriter());
+            }
         }
     }
 
@@ -79,7 +81,7 @@ public class RaidViewer {
     public void listRaids(PrintWriter writer) {
         List<Raid> raids = raidDao.getRaids();
         writer.println("<div><h1>Raids</h1>");
-        raids.forEach(r->writer.format("<a href=\"?raid=%s\">%s</a><br/>\n", r.start, r.start));
+        raids.stream().filter(r->r.isFinalized()).forEach(r->writer.format("<a href=\"?raid=%s\">%s</a><br/>\n", r.start, r.start));
         writer.println("</div>");
     }
 
