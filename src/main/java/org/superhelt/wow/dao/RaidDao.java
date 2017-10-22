@@ -1,12 +1,12 @@
 package org.superhelt.wow.dao;
 
 import org.superhelt.wow.om.Encounter;
+import org.superhelt.wow.om.Player;
 import org.superhelt.wow.om.Raid;
 
 import java.sql.*;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.time.temporal.TemporalAccessor;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -15,9 +15,11 @@ public class RaidDao {
     private static final DateTimeFormatter df = DateTimeFormatter.ISO_LOCAL_DATE;
 
     private final Connection conn;
+    private final PlayerDao playerDao;
 
     public RaidDao(Connection connection) {
         conn = connection;
+        playerDao = new PlayerDao(conn);
     }
 
     public List<Raid> getRaids() {
@@ -72,6 +74,31 @@ public class RaidDao {
         }
     }
 
+    public void addPlayer(Raid raid, Encounter.Boss boss, Player player, Player.Role role) {
+        try(PreparedStatement st = conn.prepareStatement("insert into encounter_player values (?, ?, ?, ?)")) {
+            st.setString(1, df.format(raid.start));
+            st.setString(2, boss.toString());
+            st.setString(3, player.name);
+            st.setString(4, role.toString());
+
+            st.executeUpdate();
+        } catch (SQLException e) {
+            System.out.println("Unable to add player "+player.name+" to raid "+df.format(raid.start)+", boss "+boss);
+        }
+    }
+
+    public void removePlayer(Raid raid, Encounter.Boss boss, Player player) {
+        try(PreparedStatement st = conn.prepareStatement("delete from encounter_player where raid=? and boss=? and player=?")) {
+            st.setString(1, df.format(raid.start));
+            st.setString(2, boss.toString());
+            st.setString(3, player.name);
+
+            st.executeUpdate();
+        } catch (SQLException e) {
+            System.out.println("Unable to remove player "+player.name+" from raid "+df.format(raid.start)+", boss "+boss);
+        }
+    }
+
     private void addEncounters(Raid raid) throws SQLException {
         try(PreparedStatement st = conn.prepareStatement("select * from encounter where raid=?")) {
             st.setString(1, df.format(raid.start));
@@ -79,9 +106,28 @@ public class RaidDao {
             try(ResultSet rs = st.executeQuery()) {
                 while(rs.next()) {
                     Encounter.Boss boss = Encounter.Boss.valueOf(rs.getString("boss"));
+                    addPlayers(raid, boss);
                     raid.encounters.add(new Encounter(boss));
                 }
             }
+        }
+    }
+
+    private void addPlayers(Raid raid, Encounter.Boss boss) {
+        try(PreparedStatement st = conn.prepareStatement("select * from encounter_player where raid=? and boss=?")) {
+            st.setString(1, df.format(raid.start));
+            st.setString(2, boss.toString());
+            
+            try(ResultSet rs = st.executeQuery()) {
+                while(rs.next()) {
+                    Player.Role role = Player.Role.valueOf(rs.getString("role"));
+                    Player player = playerDao.getByName(rs.getString("player"));
+
+                    raid.getEncounter(boss).addPlayer(player, role);
+                }
+            }
+        } catch (SQLException e) {
+            System.out.println("Unable to add players to raid "+df.format(raid.start)+", boss "+boss);
         }
     }
 }

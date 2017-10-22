@@ -146,6 +146,7 @@ public class RaidPlanner {
         Player player = playerDao.getByName(request.getParameter("player"));
 
         raid.getEncounter(boss).removePlayer(player);
+        raidDao.removePlayer(raid, boss, player);
     }
 
     private void addPlayer(HttpServletRequest request, Raid raid) {
@@ -154,6 +155,7 @@ public class RaidPlanner {
         Player player = playerDao.getByName(request.getParameter("player"));
 
         raid.getEncounter(boss).addPlayer(player, role);
+        raidDao.addPlayer(raid, boss, player, role);
     }
 
     private void addEncounter(HttpServletRequest request, Raid raid) {
