@@ -12,15 +12,14 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
 public class RaidPlanner {
 
-    private static final DateTimeFormatter dateFormatter = DateTimeFormatter.ISO_LOCAL_DATE;
-    private static final DateTimeFormatter timeFormatter = DateTimeFormatter.ISO_LOCAL_TIME;
+    private static final DateTimeFormatter df = DateTimeFormatter.ISO_LOCAL_DATE;
+    private static final DateTimeFormatter tf = DateTimeFormatter.ISO_TIME;
 
     private RaidDao raidDao;
     private PlayerDao playerDao;
@@ -41,7 +40,7 @@ public class RaidPlanner {
         listRaids(writer);
 
         if (request.getParameter("raid") != null) {
-            LocalDate raidStart = LocalDate.parse(request.getParameter("raid"), dateFormatter);
+            LocalDate raidStart = LocalDate.parse(request.getParameter("raid"), df);
             Raid raid = raidDao.getRaid(raidStart);
 
 
@@ -58,6 +57,9 @@ public class RaidPlanner {
                         break;
                     case "addEvent":
                         addEvent(request, raid);
+                        break;
+                    case "removeEvent":
+                        removeEvent(request, raid);
                         break;
                     case "finalize":
                         finalize(raid);
@@ -80,12 +82,20 @@ public class RaidPlanner {
         }
     }
 
+    private void removeEvent(HttpServletRequest request, Raid raid) {
+        LocalTime time = LocalTime.parse(request.getParameter("event"), tf);
+
+        raidDao.removeEvent(raid, time);
+    }
+
     private void addEvent(HttpServletRequest request, Raid raid) {
         Player player = playerDao.getByName(request.getParameter("player"));
         Event.EventType type = Event.EventType.valueOf(request.getParameter("type"));
         String comment = request.getParameter("comment");
 
         raid.events.add(new Event(LocalTime.now(), player, type, comment));
+
+        raidDao.addEvent(raid, new Event(LocalTime.now(), player, type, comment));
     }
 
     private void showEvents(Raid raid, PrintWriter writer) {
@@ -102,12 +112,23 @@ public class RaidPlanner {
             writer.format("<option value=\"%s\">%s</option>", eventType, eventType);
         }
         writer.print("<input type=\"text\" name=\"comment\"/>");
-        writer.format("<input type=\"hidden\" name=\"raid\" value=\"%s\"/>", dateFormatter.format(raid.start));
+        writer.format("<input type=\"hidden\" name=\"raid\" value=\"%s\"/>", df.format(raid.start));
         writer.print("</select><input type=\"submit\"></form>");
 
         writer.println("<ul>");
-        raid.events.forEach(e -> writer.format("<ul>%s %s: %s</ul>", e.player.classString(), e.type, e.comment));
-        writer.println("</ul>");
+        for(Event event : raid.events) {
+            if(!raid.isFinalized()) {
+                writer.format("<form method=\"post\">");
+            }
+            writer.format("<ul>%s %s: %s", event.player.classString(), event.type, event.comment);
+            if(!raid.isFinalized()) {
+                writer.format("<input type=\"hidden\" name=\"raid\" value=\"%s\"/>",  df.format(raid.start));
+                writer.format("<input type=\"hidden\" name=\"action\" value=\"removeEvent\"/>");
+                writer.format("<input type=\"hidden\" name=\"event\" value=\"%s\"/>", tf.format(event.time));
+                writer.format("<input type=\"submit\" value=\"Remove\"/></form>");
+            }
+            writer.println("</ul>");
+        }
 
         writer.println("</div>");
     }
@@ -138,12 +159,12 @@ public class RaidPlanner {
     }
 
     private void addRaid(HttpServletRequest request, PrintWriter writer) {
-        LocalDate date = LocalDate.parse(request.getParameter("date"), dateFormatter);
+        LocalDate date = LocalDate.parse(request.getParameter("time"), df);
         List<Raid> raids = raidDao.getRaids();
         if (raids.stream().anyMatch(r -> r.start.isEqual(date))) {
-            writer.format("<h2>Raid at %s already exists</h2>", dateFormatter.format(date));
+            writer.format("<h2>Raid at %s already exists</h2>", df.format(date));
         } else {
-            writer.format("<h2>Adding raid: %s</h2>", dateFormatter.format(date));
+            writer.format("<h2>Adding raid: %s</h2>", df.format(date));
             raidDao.addRaid(new Raid(date));
         }
     }
@@ -165,7 +186,7 @@ public class RaidPlanner {
 
     private void addEncounter(HttpServletRequest request, Raid raid) {
         Encounter.Boss boss = Encounter.Boss.valueOf(request.getParameter("boss"));
-        System.out.println("Adding boss " + boss + " to raid " + dateFormatter.format(raid.start));
+        System.out.println("Adding boss " + boss + " to raid " + df.format(raid.start));
         raidDao.addEncounter(raid, boss);
     }
 
@@ -178,10 +199,10 @@ public class RaidPlanner {
     }
 
     private void planRaid(PrintWriter writer, Raid raid) {
-        writer.format("<div><h1>%s</h1>", dateFormatter.format(raid.start));
+        writer.format("<div><h1>%s</h1>", df.format(raid.start));
         if (!raid.isFinalized()) {
-            writer.format("<form method=\"post\"><input type=\"hidden\" name=\"action\" value=\"finalize\"/><input type=\"hidden\"name=\"raid\" value=\"%s\"/><input type=\"submit\" value=\"Finalize\"></form>", dateFormatter.format(raid.start));
-            writer.format("<form method=\"post\" action=\"planRaid\"><input type=\"hidden\" name=\"raid\" value=\"%s\"/>", dateFormatter.format(raid.start));
+            writer.format("<form method=\"post\"><input type=\"hidden\" name=\"action\" value=\"finalize\"/><input type=\"hidden\"name=\"raid\" value=\"%s\"/><input type=\"submit\" value=\"Finalize\"></form>", df.format(raid.start));
+            writer.format("<form method=\"post\" action=\"planRaid\"><input type=\"hidden\" name=\"raid\" value=\"%s\"/>", df.format(raid.start));
             writer.println("<input type=\"hidden\" name=\"action\" value=\"addEncounter\"/>");
 
             if (Arrays.stream(Encounter.Boss.values()).filter(b -> !raid.containsBoss(b)).count() > 0) {
@@ -195,12 +216,12 @@ public class RaidPlanner {
                 writer.println("</form>");
             }
         } else {
-            writer.format("<form method=\"post\"><input type=\"hidden\" name=\"action\" value=\"reopen\"/><input type=\"hidden\"name=\"raid\" value=\"%s\"/><input type=\"submit\" value=\"Reopen\"></form>", dateFormatter.format(raid.start));
+            writer.format("<form method=\"post\"><input type=\"hidden\" name=\"action\" value=\"reopen\"/><input type=\"hidden\"name=\"raid\" value=\"%s\"/><input type=\"submit\" value=\"Reopen\"></form>", df.format(raid.start));
         }
 
         writer.println("<h1>Encounters</h1>");
         raid.encounters.forEach(e -> {
-            writer.format("<a href=\"?raid=%s&boss=%s\">%s</a><br/>\n", dateFormatter.format(raid.start), e.boss, e.boss);
+            writer.format("<a href=\"?raid=%s&boss=%s\">%s</a><br/>\n", df.format(raid.start), e.boss, e.boss);
         });
         writer.println("</div>");
     }
@@ -226,7 +247,7 @@ public class RaidPlanner {
                     for (Player.Role role : Player.Role.values()) {
                         if (player.roles.contains(role) && !raid.isFinalized()) {
                             writer.format("<td><a href=\"?action=addPlayer&raid=%s&boss=%s&role=%s&player=%s\">%s</a></td>",
-                                    dateFormatter.format(raid.start), boss, role, player.name, role);
+                                    df.format(raid.start), boss, role, player.name, role);
                         } else {
                             writer.println("<td></td>");
                         }
@@ -252,7 +273,7 @@ public class RaidPlanner {
 
         if (!raid.isFinalized()) {
             encounter.getPlayersOfRole(role).forEach(p -> writer.format("<a href=\"?raid=%s&boss=%s&action=removePlayer&player=%s\">%s</a><br/>\n",
-                    dateFormatter.format(raid.start), boss, p.name, p.classString()));
+                    df.format(raid.start), boss, p.name, p.classString()));
         } else {
             encounter.getPlayersOfRole(role).forEach(p -> writer.format("%s<br/>", p.classString()));
         }
@@ -261,7 +282,7 @@ public class RaidPlanner {
     public void listRaids(PrintWriter writer) {
         List<Raid> raids = raidDao.getRaids();
         writer.println("<div><h1>Raids</h1>");
-        writer.format("<form method=\"post\"><input type=\"hidden\" name=\"action\" value=\"addRaid\"/><input type=\"text\" name=\"date\" value=\"%s\"/><br/><input type=\"submit\"/></form>", dateFormatter.format(LocalDate.now()));
+        writer.format("<form method=\"post\"><input type=\"hidden\" name=\"action\" value=\"addRaid\"/><input type=\"text\" name=\"time\" value=\"%s\"/><br/><input type=\"submit\"/></form>", df.format(LocalDate.now()));
         raids.forEach(r -> writer.format("<a href=\"?raid=%s\">%s</a><br/>\n", r.start, r.start));
         writer.println("</div>");
     }

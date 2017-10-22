@@ -1,13 +1,11 @@
 package org.superhelt.wow.dao;
 
-import org.superhelt.wow.om.Encounter;
-import org.superhelt.wow.om.Player;
-import org.superhelt.wow.om.Raid;
-import org.superhelt.wow.om.Signup;
+import org.superhelt.wow.om.*;
 
 import java.sql.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -17,7 +15,8 @@ import java.util.List;
 public class RaidDao {
 
     private static final DateTimeFormatter df = DateTimeFormatter.ISO_LOCAL_DATE;
-    private static final DateTimeFormatter tf = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
+    private static final DateTimeFormatter dtf = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
+    private static final DateTimeFormatter tf = DateTimeFormatter.ISO_TIME;
 
     private final Connection conn;
     private final PlayerDao playerDao;
@@ -43,7 +42,7 @@ public class RaidDao {
 
     private LocalDateTime getDateTime(String finalized) {
         if(finalized == null || finalized.isEmpty()) return null;
-        return LocalDateTime.parse(finalized, tf);
+        return LocalDateTime.parse(finalized, dtf);
     }
 
     public Raid getRaid(LocalDate date) {
@@ -67,7 +66,27 @@ public class RaidDao {
         Raid raid = new Raid(start, finalized);
         addEncounters(raid);
         addSignups(raid);
+        addEvents(raid);
         return raid;
+    }
+
+    private void addEvents(Raid raid) {
+        try(PreparedStatement st = conn.prepareStatement("select * from event where raid=?")) {
+            st.setString(1, df.format(raid.start));
+
+            try(ResultSet rs = st.executeQuery()) {
+                while(rs.next()) {
+                    LocalTime date = LocalTime.parse(rs.getString("time"), tf);
+                    Player player = playerDao.getByName(rs.getString("player"));
+                    Event.EventType type = Event.EventType.valueOf(rs.getString("type"));
+                    String comment = rs.getString("comment");
+
+                    raid.events.add(new Event(date, player, type, comment));
+                }
+            }
+        } catch (SQLException e) {
+            System.out.println("Unable to fetch events");
+        }
     }
 
     private void addSignups(Raid raid) {
@@ -75,7 +94,7 @@ public class RaidDao {
             st.setString(1, df.format(raid.start));
             try(ResultSet rs = st.executeQuery()) {
                 while (rs.next()) {
-                    LocalDateTime time = LocalDateTime.parse(rs.getString("time"), tf);
+                    LocalDateTime time = LocalDateTime.parse(rs.getString("time"), dtf);
                     Player player = playerDao.getByName(rs.getString("player"));
                     Signup.Type type = Signup.Type.valueOf(rs.getString("type"));
                     String comment = rs.getString("comment");
@@ -168,7 +187,7 @@ public class RaidDao {
     public void addSignup(Raid raid, Signup signup) {
         try(PreparedStatement st = conn.prepareStatement("insert into signup values (?, ?, ?, ?, ?)")) {
             st.setString(1, df.format(raid.start));
-            st.setString(2, tf.format(signup.time));
+            st.setString(2, dtf.format(signup.time));
             st.setString(3, signup.player.name);
             st.setString(4, signup.type.toString());
             st.setString(5, signup.comment);
@@ -192,7 +211,7 @@ public class RaidDao {
 
     public void finalize(Raid raid, LocalDateTime finalizedTime) {
         try(PreparedStatement st = conn.prepareStatement("update raid set finalized=? where start=?")) {
-            st.setString(1, tf.format(finalizedTime));
+            st.setString(1, dtf.format(finalizedTime));
             st.setString(2, df.format(raid.start));
 
             st.executeUpdate();
@@ -208,6 +227,31 @@ public class RaidDao {
             st.executeUpdate();
         } catch (SQLException e) {
             System.out.println("Unable to reopen raid");
+        }
+    }
+
+    public void addEvent(Raid raid, Event event) {
+        try(PreparedStatement st = conn.prepareStatement("insert into event values (?, ?, ?, ?, ?)")) {
+            st.setString(1, df.format(raid.start));
+            st.setString(2, event.player.name);
+            st.setString(3, event.type.toString());
+            st.setString(4, event.comment);
+            st.setString(5, tf.format(event.time));
+
+            st.executeUpdate();
+        } catch (SQLException e) {
+            System.out.println("Unable to add event");
+        }
+    }
+
+    public void removeEvent(Raid raid, LocalTime time) {
+        try(PreparedStatement st = conn.prepareStatement("delete from event where raid=? and time=?")) {
+            st.setString(1, df.format(raid.start));
+            st.setString(2, tf.format(time));
+
+            st.executeUpdate();
+        } catch (SQLException e) {
+            System.out.println("Unable to remove event");
         }
     }
 }
