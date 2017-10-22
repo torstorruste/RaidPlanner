@@ -16,6 +16,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static org.superhelt.wow.om.Signup.Type.ACCEPTED;
+
 public class RaidViewer {
     private final RaidDao raidDao;
     private final PlayerDao playerDao;
@@ -49,7 +51,28 @@ public class RaidViewer {
         printPlayersOfRole(writer, encounter, Player.Role.Melee);
         printPlayersOfRole(writer, encounter, Player.Role.Ranged);
 
+        printBench(writer, raid);
+
         writer.println("</div>");
+    }
+
+    private void printBench(PrintWriter writer, Raid raid) {
+        writer.format("<h2>Bench</h2>");
+
+        List<Player> players = raid.signups.stream().filter(s -> s.type == ACCEPTED).map(s -> s.player).collect(Collectors.toList());
+
+        for(Player player: players){
+            boolean participating = false;
+            for (Encounter encounter : raid.encounters) {
+                if (encounter.isParticipating(player)) {
+                    participating = true;
+                }
+            }
+
+            if(!participating) {
+                writer.format("%s<br/>", player.classString());
+            }
+        }
     }
 
     private void printPlayersOfRole(PrintWriter writer, Encounter encounter, Player.Role role) {
