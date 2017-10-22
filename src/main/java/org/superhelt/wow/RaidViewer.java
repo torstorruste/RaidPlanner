@@ -44,15 +44,15 @@ public class RaidViewer {
     private void showBoss(PrintWriter writer, Raid raid, Encounter encounter) {
         writer.format("<div style=\"float: left; width: 400px;\"><h1>%s (%d)</h1>", encounter.boss, encounter.numParticipants());
 
-        printPlayersOfRole(raid, encounter.boss, writer, encounter, Player.Role.Tank);
-        printPlayersOfRole(raid, encounter.boss, writer, encounter, Player.Role.Healer);
-        printPlayersOfRole(raid, encounter.boss, writer, encounter, Player.Role.Melee);
-        printPlayersOfRole(raid, encounter.boss, writer, encounter, Player.Role.Ranged);
+        printPlayersOfRole(writer, encounter, Player.Role.Tank);
+        printPlayersOfRole(writer, encounter, Player.Role.Healer);
+        printPlayersOfRole(writer, encounter, Player.Role.Melee);
+        printPlayersOfRole(writer, encounter, Player.Role.Ranged);
 
         writer.println("</div>");
     }
 
-    private void printPlayersOfRole(Raid raid, Encounter.Boss boss, PrintWriter writer, Encounter encounter, Player.Role role) {
+    private void printPlayersOfRole(PrintWriter writer, Encounter encounter, Player.Role role) {
         int numWithRole = encounter.getPlayersOfRole(role).size();
         if(numWithRole>0) {
             writer.format("<h2>%s (%d)</h2>", role, numWithRole);
@@ -60,8 +60,7 @@ public class RaidViewer {
             writer.format("<h2>%s</h2>", role);
         }
 
-        encounter.getPlayersOfRole(role).forEach(p->writer.format("<a href=\"?raid=%s&boss=%s&action=removePlayer&player=%s\">%s</a><br/>\n",
-                dateFormatter.format(raid.start), boss, p.name, p.classString()));
+        encounter.getPlayersOfRole(role).forEach(p->writer.format("%s<br/>\n",p.classString()));
     }
 
     public void listRaids(PrintWriter writer) {
