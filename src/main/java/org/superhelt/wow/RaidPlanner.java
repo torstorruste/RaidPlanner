@@ -197,6 +197,8 @@ public class RaidPlanner {
         printPlayersOfRole(raid, boss, writer, encounter, players, Player.Role.Melee);
         printPlayersOfRole(raid, boss, writer, encounter, players, Player.Role.Ranged);
 
+
+        writer.format("<h1>Bench (%d)</h1>", players.stream().filter(p->!encounter.isParticipating(p)).count());
         writer.println("<table><tr><th>Player</th><th>Tank</th><th>Healer</th><th>Melee</th><th>Ranged</th></tr>");
         for(Player player : players) {
             if(!encounter.isParticipating(player)) {

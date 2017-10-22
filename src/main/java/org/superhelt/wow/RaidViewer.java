@@ -57,11 +57,11 @@ public class RaidViewer {
     }
 
     private void printBench(PrintWriter writer, Encounter encounter, Raid raid) {
-        writer.format("<h2>Bench</h2>");
-
         List<Player> players = raid.signups.stream().filter(s -> s.type == ACCEPTED).map(s -> s.player).collect(Collectors.toList());
+        List<Player> participatingPlayers = players.stream().filter(p -> !encounter.isParticipating(p)).collect(Collectors.toList());
 
-        players.stream().filter(p->!encounter.isParticipating(p)).forEach(p->writer.format("%s<br/>", p.classString()));
+        writer.format("<h2>Bench (%d)</h2>", participatingPlayers.size());
+        participatingPlayers.forEach(p->writer.format("%s<br/>", p.classString()));
     }
 
     private void printPlayersOfRole(PrintWriter writer, Encounter encounter, Player.Role role) {
