@@ -1,5 +1,7 @@
 package org.superhelt.wow.dao;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.superhelt.wow.om.Player;
 
 import java.sql.*;
@@ -9,6 +11,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class PlayerDao {
+
+    private static final Logger log = LoggerFactory.getLogger(PlayerDao.class);
 
     private final Connection conn;
 
@@ -30,7 +34,7 @@ public class PlayerDao {
             }
 
         } catch (SQLException e) {
-            System.out.println("Unable to find players");
+            log.error("Unable to find players", e);
         }
 
         return players;
@@ -56,7 +60,7 @@ public class PlayerDao {
                 }
             }
         } catch (SQLException e) {
-            System.out.println("Unable to find players");
+            log.error("Unable to find player with name {}", name, e);
         }
 
         throw new IllegalArgumentException("Unknown player "+name);

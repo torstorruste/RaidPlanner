@@ -1,5 +1,7 @@
 package org.superhelt.wow.dao;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.superhelt.wow.om.*;
 
 import java.sql.*;
@@ -13,6 +15,8 @@ import java.util.Comparator;
 import java.util.List;
 
 public class RaidDao {
+
+    private static final Logger log = LoggerFactory.getLogger(RaidDao.class);
 
     private static final DateTimeFormatter df = DateTimeFormatter.ISO_LOCAL_DATE;
     private static final DateTimeFormatter dtf = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
@@ -55,7 +59,7 @@ public class RaidDao {
             }
 
         } catch (SQLException e) {
-            e.printStackTrace();
+            log.error("Unable to get raid with start {}", date, e);
         }
         throw new IllegalArgumentException("Unknown raid "+date);
     }
@@ -85,7 +89,7 @@ public class RaidDao {
                 }
             }
         } catch (SQLException e) {
-            System.out.println("Unable to fetch events");
+            log.error("Unable to fetch events for raid {}", raid.start, e);
         }
     }
 
@@ -103,7 +107,7 @@ public class RaidDao {
                 }
             }
         } catch (SQLException e) {
-            System.out.println("Unable to add signups for raid "+raid.start);
+            log.error("Unable to add signups for raid {}", raid.start, e);
         }
     }
 
@@ -112,7 +116,7 @@ public class RaidDao {
             st.setString(1, df.format(raid.start));
             st.executeUpdate();
         } catch (SQLException e) {
-            System.out.println("Unable to create raid "+raid.start);
+            log.error("Unable to create raid with start {}", raid.start, e);
         }
     }
 
@@ -123,7 +127,7 @@ public class RaidDao {
 
             st.executeUpdate();
         } catch(SQLException e) {
-            System.out.println("Unable to add encounter "+boss+" to raid "+df.format(raid.start));
+            log.error("Unable to add encounter {} to raid {}", boss, raid.start, e);
         }
     }
 
@@ -136,7 +140,7 @@ public class RaidDao {
 
             st.executeUpdate();
         } catch (SQLException e) {
-            System.out.println("Unable to add player "+player.name+" to raid "+df.format(raid.start)+", boss "+boss);
+            log.error("Unable to add player {} to raid {} and boss {}", player.name, raid.start, boss, e);
         }
     }
 
@@ -148,7 +152,7 @@ public class RaidDao {
 
             st.executeUpdate();
         } catch (SQLException e) {
-            System.out.println("Unable to remove player "+player.name+" from raid "+df.format(raid.start)+", boss "+boss);
+            log.error("Unable to remove player {} from raid {} and boss {}", player.name, raid.start, boss, e);
         }
     }
 
@@ -180,7 +184,7 @@ public class RaidDao {
                 }
             }
         } catch (SQLException e) {
-            System.out.println("Unable to add players to raid "+df.format(raid.start)+", boss "+boss);
+            log.error("Unable to add players to raid {}, boss {}", raid.start, boss, e);
         }
     }
 
@@ -194,7 +198,7 @@ public class RaidDao {
 
             st.executeUpdate();
         } catch (SQLException e) {
-            System.out.println("Unable to add signup to raid");
+            log.error("Unable to add signup for player {} to raid {}", signup.player.name, raid.start, e);
         }
     }
 
@@ -205,7 +209,7 @@ public class RaidDao {
 
             st.executeUpdate();
         } catch (SQLException e) {
-            System.out.println("Unable to remove signup from raid");
+            log.error("Unable to remove signup for player {} from raid {}", player, raid.start, e);
         }
     }
 
@@ -216,7 +220,7 @@ public class RaidDao {
 
             st.executeUpdate();
         } catch (SQLException e) {
-            System.out.println("Unable to finalize raid");
+            log.error("Unable to finalize raid {}", raid.start, e);
         }
     }
 
@@ -226,7 +230,7 @@ public class RaidDao {
 
             st.executeUpdate();
         } catch (SQLException e) {
-            System.out.println("Unable to reopen raid");
+            log.error("Unable to reopen raid {}", raid.start, e);
         }
     }
 
@@ -240,7 +244,7 @@ public class RaidDao {
 
             st.executeUpdate();
         } catch (SQLException e) {
-            System.out.println("Unable to add event");
+            log.error("Unable to add event of type {} to raid {}", event.type, raid.start, e);
         }
     }
 
@@ -251,7 +255,7 @@ public class RaidDao {
 
             st.executeUpdate();
         } catch (SQLException e) {
-            System.out.println("Unable to remove event");
+            log.error("Unable to remove event with time {} from raid {}", raid.start, time, e);
         }
     }
 }

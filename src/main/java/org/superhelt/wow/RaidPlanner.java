@@ -186,7 +186,6 @@ public class RaidPlanner {
 
     private void addEncounter(HttpServletRequest request, Raid raid) {
         Encounter.Boss boss = Encounter.Boss.valueOf(request.getParameter("boss"));
-        System.out.println("Adding boss " + boss + " to raid " + df.format(raid.start));
         raidDao.addEncounter(raid, boss);
     }
 
