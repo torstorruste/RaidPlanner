@@ -160,6 +160,7 @@ public class RaidPlanner {
         Encounter.Boss boss = Encounter.Boss.valueOf(request.getParameter("boss"));
         System.out.println("Adding boss "+boss+" to raid "+dateFormatter.format(raid.start));
         raid.encounters.add(new Encounter(boss));
+        raidDao.addEncounter(raid, boss);
     }
 
     private void planRaid(PrintWriter writer, Raid raid) {
