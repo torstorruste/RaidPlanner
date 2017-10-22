@@ -30,7 +30,7 @@ public class RaidPlanner {
         this.playerDao = playerDao;
     }
 
-    public void planRaids(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    public void handle(HttpServletRequest request, HttpServletResponse response) throws IOException {
         PrintWriter writer = response.getWriter();
 
         String action = request.getParameter("action");

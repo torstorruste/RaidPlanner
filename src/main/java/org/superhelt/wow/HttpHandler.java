@@ -35,6 +35,7 @@ public class HttpHandler extends AbstractHandler {
             EventViewer eventViewer = new EventViewer(raidDao, playerDao);
             RaidPlanner raidPlanner = new RaidPlanner(raidDao, playerDao);
             RaidInviter raidInviter = new RaidInviter(raidDao, playerDao);
+            RaidViewer raidViewer = new RaidViewer(raidDao, playerDao);
 
             response.setContentType("text/html;charset=utf-8");
             response.setStatus(HttpServletResponse.SC_OK);
@@ -44,13 +45,16 @@ public class HttpHandler extends AbstractHandler {
 
             switch (request.getRequestURI()) {
                 case "/planRaid":
-                    raidPlanner.planRaids(request, response);
+                    raidPlanner.handle(request, response);
                     break;
                 case "/showEvents":
-                    eventViewer.printEvents(request, writer);
+                    eventViewer.handle(request, writer);
+                    break;
+                case "/signup":
+                    raidInviter.handle(request, response);
                     break;
                 default:
-                    raidInviter.showSignupPage(request, response);
+                    raidViewer.handle(request, response);
             }
 
             writer.print("</body></html>");

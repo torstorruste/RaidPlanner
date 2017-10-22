@@ -10,6 +10,8 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 public class RaidDao {
@@ -38,6 +40,7 @@ public class RaidDao {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+        Collections.sort(raids, Comparator.comparing((Raid r) -> r.start).reversed());
         return raids;
     }
 

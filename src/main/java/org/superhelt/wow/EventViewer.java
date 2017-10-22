@@ -26,7 +26,7 @@ public class EventViewer {
         this.playerDao = playerDao;
     }
 
-    public void printEvents(HttpServletRequest request, PrintWriter writer) throws IOException {
+    public void handle(HttpServletRequest request, PrintWriter writer) throws IOException {
 
         String raid = request.getParameter("raid");
         String player = request.getParameter("player");

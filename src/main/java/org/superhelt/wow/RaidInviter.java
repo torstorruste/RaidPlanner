@@ -27,7 +27,7 @@ public class RaidInviter {
         this.playerDao = playerDao;
     }
 
-    public void showSignupPage(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    public void handle(HttpServletRequest request, HttpServletResponse response) throws IOException {
         PrintWriter writer = response.getWriter();
         listRaids(writer);
         if(request.getParameter("raid")!=null) {
