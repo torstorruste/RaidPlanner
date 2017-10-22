@@ -56,7 +56,10 @@ public class RaidInviter {
     private void printSignups(PrintWriter writer, Raid raid) {
         writer.println("<div><h1>Signups</h1><ul>");
         for(Signup signup : raid.signups) {
-            writer.println("<li><form method=\"post\">");
+            writer.println("<li>");
+            if(!raid.isFinalized()) {
+                writer.println("<form method=\"post\">");
+            }
             switch(signup.type) {
                 case ACCEPTED:
                     writer.format("%s signed up for the raid", signup.player.classString());
@@ -68,8 +71,11 @@ public class RaidInviter {
                     writer.format("%s declined the raid with the following comment: %s", signup.player.classString(), signup.comment);
                     break;
             }
-            writer.format("<input type=\"hidden\" name=\"raid\" value=\"%s\"/><input type=\"hidden\" name=\"player\" value=\"%s\"/>" +
-                    "<input type=\"hidden\" name=\"action\" value=\"unsign\"><input type=\"submit\" value=\"remove\"></form></li>", dateFormatter.format(raid.start), signup.player.name);
+            if(!raid.isFinalized()) {
+                writer.format("<input type=\"hidden\" name=\"raid\" value=\"%s\"/><input type=\"hidden\" name=\"player\" value=\"%s\"/>" +
+                        "<input type=\"hidden\" name=\"action\" value=\"unsign\"><input type=\"submit\" value=\"remove\"></form>", dateFormatter.format(raid.start), signup.player.name);
+            }
+            writer.print("</li>");
         }
 
         writer.println("</ul></div>");
@@ -101,19 +107,23 @@ public class RaidInviter {
     private void printSignupForm(PrintWriter writer, Raid raid) {
         writer.format("<div><h1>%s</h1>", dateFormatter.format(raid.start));
 
-        writer.format("<form method=\"post\"><input type=\"hidden\" name=\"action\" value=\"signup\"><input type=\"hidden\" name=\"raid\" value=\"%s\"/>", raid.start);
+        if(raid.isFinalized()) {
+            writer.format("<h2>Raid is finalized</h2>");
+        } else {
+            writer.format("<form method=\"post\"><input type=\"hidden\" name=\"action\" value=\"signup\"><input type=\"hidden\" name=\"raid\" value=\"%s\"/>", raid.start);
 
-        for(Player player : playerDao.getPlayers()) {
-            if(!raid.signups.stream().anyMatch(s->s.player.name.equals(player.name))) {
-                writer.format("<input type=\"checkbox\" name=\"player\" value=\"%s\">%s<br/>", player.name, player.classString());
+            for (Player player : playerDao.getPlayers()) {
+                if (!raid.signups.stream().anyMatch(s -> s.player.name.equals(player.name))) {
+                    writer.format("<input type=\"checkbox\" name=\"player\" value=\"%s\">%s<br/>", player.name, player.classString());
+                }
             }
+            writer.println("<select name=\"type\">");
+            for (Signup.Type type : Signup.Type.values()) {
+                writer.format("<option value=\"%s\">%s</option>", type, type);
+            }
+            writer.println("</select><input type=\"text\" name=\"comment\" maxlength=\"200\" placeholder=\"comment if not accepted\"/>");
+            writer.println("<input type=\"submit\"></form>");
         }
-        writer.println("<select name=\"type\">");
-        for(Signup.Type type : Signup.Type.values()) {
-            writer.format("<option value=\"%s\">%s</option>", type, type);
-        }
-        writer.println("</select><input type=\"text\" name=\"comment\" maxlength=\"200\" placeholder=\"comment if not accepted\"/>");
-        writer.println("<input type=\"submit\"></form>");
         writer.println("</div>");
     }
 

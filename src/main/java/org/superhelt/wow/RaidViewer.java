@@ -22,6 +22,7 @@ public class RaidViewer {
     private final RaidDao raidDao;
     private final PlayerDao playerDao;
     private static final DateTimeFormatter dateFormatter = DateTimeFormatter.ISO_LOCAL_DATE;
+    private static final DateTimeFormatter timeFormatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
 
     public RaidViewer(RaidDao raidDao, PlayerDao playerDao) {
         this.raidDao = raidDao;
@@ -39,7 +40,7 @@ public class RaidViewer {
                 showBoss(response.getWriter(), raid, encounter);
             }
 
-            listAbsentees(raid, response.getWriter());
+            listRaidInfo(raid, response.getWriter());
         }
     }
 
@@ -82,8 +83,14 @@ public class RaidViewer {
         writer.println("</div>");
     }
 
-    private void listAbsentees(Raid raid, PrintWriter writer) {
+    private void listRaidInfo(Raid raid, PrintWriter writer) {
         writer.println("<div>");
+
+        if(raid.isFinalized()) {
+            writer.format("<h1>Roster finalized</h1><p>%s</p>", timeFormatter.format(raid.finalized));
+        } else {
+            writer.print("<h1>Roster being setup</h1>");
+        }
 
         if(raid.signups.stream().filter(s->s.type== Signup.Type.TENTATIVE).count()>0) {
             writer.println("<h2>Tentative</h2><ul>");

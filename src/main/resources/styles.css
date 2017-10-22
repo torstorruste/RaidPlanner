@@ -6,6 +6,8 @@ body {
   /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
   background: linear-gradient(-90deg, #35577D, #141E30);
   padding-left: 20px;
+
+  color: #EEEEEE;
 }
 input {background-color: #EEEEEE;}
 
@@ -28,13 +30,9 @@ input {background-color: #EEEEEE;}
 .SWAP { background-color: #345FEB}
 .PERFORMANCE {background-color: #E5EB34}
 
-h1, h2, ul, p, th, li {
-color: #EEEEEE;
-
-}
 
 a {
-  color: #ffffff
+  color: #eeeeee
 }
 
 div {

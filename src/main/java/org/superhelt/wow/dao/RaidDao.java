@@ -32,10 +32,7 @@ public class RaidDao {
         try(Statement st = conn.createStatement();
             ResultSet rs = st.executeQuery("select * from raid")) {
             while(rs.next()) {
-                Raid raid = new Raid(LocalDate.parse(rs.getString("start"), df));
-                addEncounters(raid);
-                addSignups(raid);
-                raids.add(raid);
+                raids.add(mapRaid(rs));
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -44,15 +41,17 @@ public class RaidDao {
         return raids;
     }
 
+    private LocalDateTime getDateTime(String finalized) {
+        if(finalized == null || finalized.isEmpty()) return null;
+        return LocalDateTime.parse(finalized, tf);
+    }
+
     public Raid getRaid(LocalDate date) {
         try(PreparedStatement st = conn.prepareStatement("select * from raid where start=?")) {
             st.setString(1, df.format(date));
             try(ResultSet rs = st.executeQuery()) {
                 while(rs.next()) {
-                    Raid raid = new Raid(LocalDate.parse(rs.getString("start"), df));
-                    addEncounters(raid);
-                    addSignups(raid);
-                    return raid;
+                    return mapRaid(rs);
                 }
             }
 
@@ -60,6 +59,15 @@ public class RaidDao {
             e.printStackTrace();
         }
         throw new IllegalArgumentException("Unknown raid "+date);
+    }
+
+    private Raid mapRaid(ResultSet rs) throws SQLException {
+        LocalDate start = LocalDate.parse(rs.getString("start"), df);
+        LocalDateTime finalized = getDateTime(rs.getString("finalized"));
+        Raid raid = new Raid(start, finalized);
+        addEncounters(raid);
+        addSignups(raid);
+        return raid;
     }
 
     private void addSignups(Raid raid) {
@@ -179,6 +187,27 @@ public class RaidDao {
             st.executeUpdate();
         } catch (SQLException e) {
             System.out.println("Unable to remove signup from raid");
+        }
+    }
+
+    public void finalize(Raid raid, LocalDateTime finalizedTime) {
+        try(PreparedStatement st = conn.prepareStatement("update raid set finalized=? where start=?")) {
+            st.setString(1, tf.format(finalizedTime));
+            st.setString(2, df.format(raid.start));
+
+            st.executeUpdate();
+        } catch (SQLException e) {
+            System.out.println("Unable to finalize raid");
+        }
+    }
+
+    public void reopen(Raid raid) {
+        try(PreparedStatement st = conn.prepareStatement("update raid set finalized=null where start=?")) {
+            st.setString(1, df.format(raid.start));
+
+            st.executeUpdate();
+        } catch (SQLException e) {
+            System.out.println("Unable to reopen raid");
         }
     }
 }

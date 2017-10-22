@@ -1,0 +1,1 @@
+alter table raid add finalized varchar2;
