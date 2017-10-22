@@ -13,7 +13,7 @@ public class Encounter {
     }
 
     public boolean isParticipating(Player player) {
-        return participants.values().stream().flatMap(l->l.stream()).anyMatch(p->p.equals(player));
+        return participants.values().stream().flatMap(l->l.stream()).anyMatch(p->p.name.equals(player.name));
     }
 
     public List<Player> getPlayersOfRole(Player.Role role) {

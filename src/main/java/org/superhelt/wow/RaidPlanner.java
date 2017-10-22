@@ -61,6 +61,7 @@ public class RaidPlanner {
                         break;
                 }
             }
+            raid = raidDao.getRaid(raidStart);
             planRaid(writer, raid);
 
             String boss = request.getParameter("boss");
@@ -145,7 +146,6 @@ public class RaidPlanner {
         Encounter.Boss boss = Encounter.Boss.valueOf(request.getParameter("boss"));
         Player player = playerDao.getByName(request.getParameter("player"));
 
-        raid.getEncounter(boss).removePlayer(player);
         raidDao.removePlayer(raid, boss, player);
     }
 
@@ -154,14 +154,12 @@ public class RaidPlanner {
         Player.Role role = Player.Role.valueOf(request.getParameter("role"));
         Player player = playerDao.getByName(request.getParameter("player"));
 
-        raid.getEncounter(boss).addPlayer(player, role);
         raidDao.addPlayer(raid, boss, player, role);
     }
 
     private void addEncounter(HttpServletRequest request, Raid raid) {
         Encounter.Boss boss = Encounter.Boss.valueOf(request.getParameter("boss"));
         System.out.println("Adding boss "+boss+" to raid "+dateFormatter.format(raid.start));
-        raid.encounters.add(new Encounter(boss));
         raidDao.addEncounter(raid, boss);
     }
 

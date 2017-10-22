@@ -73,7 +73,9 @@ public class RaidInviter {
         if(type != Signup.Type.ACCEPTED && (comment==null || comment.isEmpty())) {
             writer.format("<h2>Signups of type %s require a comment</h2>", type);
         } else {
-            raid.signups.add(new Signup(LocalDateTime.now(), player, type, comment));
+            Signup signup = new Signup(LocalDateTime.now(), player, type, comment);
+            raidDao.addSignup(raid, signup);
+            raid.signups.add(signup);
         }
     }
 
