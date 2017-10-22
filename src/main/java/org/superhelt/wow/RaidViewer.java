@@ -44,7 +44,7 @@ public class RaidViewer {
     }
 
     private void showBoss(PrintWriter writer, Raid raid, Encounter encounter) {
-        writer.format("<div style=\"float: left; width: 400px;\"><h1>%s (%d)</h1>", encounter.boss, encounter.numParticipants());
+        writer.format("<div><h1>%s (%d)</h1>", encounter.boss, encounter.numParticipants());
 
         printPlayersOfRole(writer, encounter, Player.Role.Tank);
         printPlayersOfRole(writer, encounter, Player.Role.Healer);
@@ -88,13 +88,13 @@ public class RaidViewer {
 
     public void listRaids(PrintWriter writer) {
         List<Raid> raids = raidDao.getRaids();
-        writer.println("<div style=\"float: left; width: 200px\"><h1>Raids</h1>");
+        writer.println("<div><h1>Raids</h1>");
         raids.forEach(r->writer.format("<a href=\"?raid=%s\">%s</a><br/>\n", r.start, r.start));
         writer.println("</div>");
     }
 
     private void listAbsentees(Raid raid, PrintWriter writer) {
-        writer.println("<div style=\"float: left\">");
+        writer.println("<div>");
 
         if(raid.signups.stream().filter(s->s.type== Signup.Type.TENTATIVE).count()>0) {
             writer.println("<h2>Tentative</h2><ul>");

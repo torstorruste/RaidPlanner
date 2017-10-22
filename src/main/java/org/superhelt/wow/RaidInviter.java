@@ -54,7 +54,7 @@ public class RaidInviter {
     }
 
     private void printSignups(PrintWriter writer, Raid raid) {
-        writer.println("<div style=\"float: left;\"><h1>Signups</h1><ul>");
+        writer.println("<div><h1>Signups</h1><ul>");
         for(Signup signup : raid.signups) {
             writer.println("<li><form method=\"post\">");
             switch(signup.type) {
@@ -99,7 +99,7 @@ public class RaidInviter {
     }
 
     private void printSignupForm(PrintWriter writer, Raid raid) {
-        writer.format("<div style=\"float: left;\"><h1>%s</h1>", dateFormatter.format(raid.start));
+        writer.format("<div><h1>%s</h1>", dateFormatter.format(raid.start));
 
         writer.format("<form method=\"post\"><input type=\"hidden\" name=\"action\" value=\"signup\"><input type=\"hidden\" name=\"raid\" value=\"%s\"/>", raid.start);
 
@@ -119,7 +119,7 @@ public class RaidInviter {
 
     public void listRaids(PrintWriter writer) {
         List<Raid> raids = raidDao.getRaids();
-        writer.println("<div style=\"float: left; width: 200px\"><h1>Raids</h1>");
+        writer.println("<div><h1>Raids</h1>");
         raids.forEach(r->writer.format("<a href=\"?raid=%s\">%s</a><br/>\n", r.start, r.start));
         writer.println("</div>");
     }

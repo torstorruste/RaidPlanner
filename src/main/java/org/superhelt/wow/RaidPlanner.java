@@ -83,7 +83,7 @@ public class RaidPlanner {
     }
 
     private void showEvents(Raid raid, PrintWriter writer) {
-        writer.println("<div style=\"float: left\">");
+        writer.println("<div>");
 
         List<Player> players = playerDao.getPlayers();
 
@@ -107,7 +107,7 @@ public class RaidPlanner {
     }
 
     private void listAbsentees(Raid raid, PrintWriter writer) {
-        writer.println("<div style=\"float: left\">");
+        writer.println("<div>");
 
         if(raid.signups.stream().filter(s->s.type==Signup.Type.TENTATIVE).count()>0) {
             writer.println("<h2>Tentative</h2><ul>");
@@ -164,7 +164,7 @@ public class RaidPlanner {
     }
 
     private void planRaid(PrintWriter writer, Raid raid) {
-        writer.format("<div style=\"float: left; width: 300px;\"><h1>%s</h1>", dateFormatter.format(raid.start));
+        writer.format("<div><h1>%s</h1>", dateFormatter.format(raid.start));
         writer.format("<form method=\"post\" action=\"planRaid\"><input type=\"hidden\" name=\"raid\" value=\"%s\"/>", dateFormatter.format(raid.start));
         writer.println("<input type=\"hidden\" name=\"action\" value=\"addEncounter\"/>");
 
@@ -189,7 +189,7 @@ public class RaidPlanner {
     private void planBoss(Raid raid, Encounter.Boss boss, PrintWriter writer) {
         Encounter encounter = raid.getEncounter(boss);
         List<Player> players = raid.acceptedPlayers();
-        writer.format("<div style=\"float: left; width: 400px;\"><h1>%s (%d)</h1>", boss, encounter.numParticipants());
+        writer.format("<div><h1>%s (%d)</h1>", boss, encounter.numParticipants());
 
 
         printPlayersOfRole(raid, boss, writer, encounter, players, Player.Role.Tank);
@@ -231,7 +231,7 @@ public class RaidPlanner {
 
     public void listRaids(PrintWriter writer) {
         List<Raid> raids = raidDao.getRaids();
-        writer.println("<div style=\"float: left; width: 200px\"><h1>Raids</h1>");
+        writer.println("<div><h1>Raids</h1>");
         writer.format("<form method=\"post\"><input type=\"hidden\" name=\"action\" value=\"addRaid\"/><input type=\"text\" name=\"date\" value=\"%s\"/><br/><input type=\"submit\"/></form>", dateFormatter.format(LocalDate.now()));
         raids.forEach(r->writer.format("<a href=\"?raid=%s\">%s</a><br/>\n", r.start, r.start));
         writer.println("</div>");

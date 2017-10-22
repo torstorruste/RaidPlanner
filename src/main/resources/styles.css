@@ -32,3 +32,12 @@ h1, h2, ul, p, th, li {
 color: #EEEEEE;
 
 }
+
+a {
+  color: #ffffff
+}
+
+div {
+  float: left;
+  margin: 20px;
+}
