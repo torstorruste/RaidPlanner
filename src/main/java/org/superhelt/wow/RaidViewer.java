@@ -51,28 +51,17 @@ public class RaidViewer {
         printPlayersOfRole(writer, encounter, Player.Role.Melee);
         printPlayersOfRole(writer, encounter, Player.Role.Ranged);
 
-        printBench(writer, raid);
+        printBench(writer, encounter, raid);
 
         writer.println("</div>");
     }
 
-    private void printBench(PrintWriter writer, Raid raid) {
+    private void printBench(PrintWriter writer, Encounter encounter, Raid raid) {
         writer.format("<h2>Bench</h2>");
 
         List<Player> players = raid.signups.stream().filter(s -> s.type == ACCEPTED).map(s -> s.player).collect(Collectors.toList());
 
-        for(Player player: players){
-            boolean participating = false;
-            for (Encounter encounter : raid.encounters) {
-                if (encounter.isParticipating(player)) {
-                    participating = true;
-                }
-            }
-
-            if(!participating) {
-                writer.format("%s<br/>", player.classString());
-            }
-        }
+        players.stream().filter(p->!encounter.isParticipating(p)).forEach(p->writer.format("%s<br/>", p.classString()));
     }
 
     private void printPlayersOfRole(PrintWriter writer, Encounter encounter, Player.Role role) {
