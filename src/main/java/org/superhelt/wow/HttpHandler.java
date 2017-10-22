@@ -41,7 +41,22 @@ public class HttpHandler extends AbstractHandler {
             response.setStatus(HttpServletResponse.SC_OK);
 
             PrintWriter writer = response.getWriter();
-            writer.print("<!DOCTYPE html><html><head><link rel=\"stylesheet\" type=\"text/css\" href=\"styles.css\"/><title>ANE PlayerNotes</title></head><body>");
+
+            String title;
+            switch(request.getRequestURI()) {
+                case "/planRaid":
+                    title = "ANE Raid Planner";
+                    break;
+                case "/showEvents":
+                    title = "ANE Player Notes";
+                    break;
+                case "/signup":
+                    title = "ANE Raid Signup";
+                    break;
+                default:
+                    title = "ANE Raid Setup";
+            }
+            writer.format("<!DOCTYPE html><html><head><link rel=\"stylesheet\" type=\"text/css\" href=\"styles.css\"/><title>%s</title></head><body>", title);
 
             switch (request.getRequestURI()) {
                 case "/planRaid":
