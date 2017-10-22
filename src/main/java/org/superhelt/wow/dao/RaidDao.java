@@ -170,4 +170,15 @@ public class RaidDao {
             System.out.println("Unable to add signup to raid");
         }
     }
+
+    public void removeSignup(Raid raid, String player) {
+        try(PreparedStatement st = conn.prepareStatement("delete from signup where raid=? and player=?")) {
+            st.setString(1, df.format(raid.start));
+            st.setString(2, player);
+
+            st.executeUpdate();
+        } catch (SQLException e) {
+            System.out.println("Unable to remove signup from raid");
+        }
+    }
 }

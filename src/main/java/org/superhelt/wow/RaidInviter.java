@@ -40,8 +40,13 @@ public class RaidInviter {
                     case "signup":
                         signup(request, writer, raid);
                         break;
+                    case "unsign":
+                        unsign(request, writer, raid);
+                        break;
                 }
             }
+
+            raid = raidDao.getRaid(raidStart);
 
             printSignupForm(writer, raid);
             printSignups(writer, raid);
@@ -51,43 +56,59 @@ public class RaidInviter {
     private void printSignups(PrintWriter writer, Raid raid) {
         writer.println("<div style=\"float: left;\"><h1>Signups</h1><ul>");
         for(Signup signup : raid.signups) {
+            writer.println("<li><form method=\"post\">");
             switch(signup.type) {
                 case ACCEPTED:
-                    writer.format("<li>%s signed up for the raid</li>", signup.player.classString());
+                    writer.format("%s signed up for the raid", signup.player.classString());
                     break;
                 case TENTATIVE:
-                    writer.format("<li>%s is tentative with the following comment: %s", signup.player.classString(), signup.comment);
+                    writer.format("%s is tentative with the following comment: %s", signup.player.classString(), signup.comment);
                     break;
                 case DECLINED:
-                    writer.format("<li>%s declined the raid with the following comment: %s", signup.player.classString(), signup.comment);
+                    writer.format("%s declined the raid with the following comment: %s", signup.player.classString(), signup.comment);
+                    break;
             }
+            writer.format("<input type=\"hidden\" name=\"raid\" value=\"%s\"/><input type=\"hidden\" name=\"player\" value=\"%s\"/>" +
+                    "<input type=\"hidden\" name=\"action\" value=\"unsign\"><input type=\"submit\" value=\"remove\"></form></li>", dateFormatter.format(raid.start), signup.player.name);
         }
+
         writer.println("</ul></div>");
     }
 
     private void signup(HttpServletRequest request, PrintWriter writer, Raid raid) {
-        Player player = playerDao.getByName(request.getParameter("player"));
-        Signup.Type type = Signup.Type.valueOf(request.getParameter("type"));
-        String comment = request.getParameter("comment");
+        String[] players = request.getParameterValues("player");
+        for(String playerName : players) {
+            Player player = playerDao.getByName(playerName);
+            Signup.Type type = Signup.Type.valueOf(request.getParameter("type"));
+            String comment = request.getParameter("comment");
 
-        if(type != Signup.Type.ACCEPTED && (comment==null || comment.isEmpty())) {
-            writer.format("<h2>Signups of type %s require a comment</h2>", type);
-        } else {
-            Signup signup = new Signup(LocalDateTime.now(), player, type, comment);
-            raidDao.addSignup(raid, signup);
-            raid.signups.add(signup);
+            if (type != Signup.Type.ACCEPTED && (comment == null || comment.isEmpty())) {
+                writer.format("<h2>Signups of type %s require a comment</h2>", type);
+            } else {
+                Signup signup = new Signup(LocalDateTime.now(), player, type, comment);
+                raidDao.addSignup(raid, signup);
+            }
         }
+    }
+
+    private void unsign(HttpServletRequest request, PrintWriter writer, Raid raid) {
+        String player = request.getParameter("player");
+
+        raidDao.removeSignup(raid, player);
+
     }
 
     private void printSignupForm(PrintWriter writer, Raid raid) {
         writer.format("<div style=\"float: left;\"><h1>%s</h1>", dateFormatter.format(raid.start));
 
         writer.format("<form method=\"post\"><input type=\"hidden\" name=\"action\" value=\"signup\"><input type=\"hidden\" name=\"raid\" value=\"%s\"/>", raid.start);
-        writer.println("<select name=\"player\">");
+
         for(Player player : playerDao.getPlayers()) {
-            writer.format("<option value=\"%s\">%s</option>", player.name, player.name);
+            if(!raid.signups.stream().anyMatch(s->s.player.name.equals(player.name))) {
+                writer.format("<input type=\"checkbox\" name=\"player\" value=\"%s\">%s<br/>", player.name, player.classString());
+            }
         }
-        writer.println("</select><select name=\"type\">");
+        writer.println("<select name=\"type\">");
         for(Signup.Type type : Signup.Type.values()) {
             writer.format("<option value=\"%s\">%s</option>", type, type);
         }
