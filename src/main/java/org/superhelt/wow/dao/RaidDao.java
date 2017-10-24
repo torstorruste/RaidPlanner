@@ -112,7 +112,7 @@ public class RaidDao {
     }
 
     public void addRaid(Raid raid) {
-        try(PreparedStatement st = conn.prepareStatement("insert into raid values (?)")) {
+        try(PreparedStatement st = conn.prepareStatement("insert into raid (start) values (?)")) {
             st.setString(1, df.format(raid.start));
             st.executeUpdate();
         } catch (SQLException e) {
