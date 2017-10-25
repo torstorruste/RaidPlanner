@@ -110,8 +110,15 @@ public class RaidInviter {
         if(raid.isFinalized()) {
             writer.format("<h2>Raid is finalized</h2>");
         } else {
+            writer.println("<script language=\"JavaScript\">function toggle(source) {\n" +
+                    "  checkboxes = document.getElementsByName('player');\n" +
+                    "  for(var i=0, n=checkboxes.length;i<n;i++) {\n" +
+                    "    checkboxes[i].checked = source.checked;\n" +
+                    "  }\n" +
+                    "}" +
+                    "</script>");
             writer.format("<form method=\"post\"><input type=\"hidden\" name=\"action\" value=\"signup\"><input type=\"hidden\" name=\"raid\" value=\"%s\"/>", raid.start);
-
+            writer.println("<input type=\"checkbox\" onClick=\"toggle(this)\"/>Toggle all<br/>");
             for (Player player : playerDao.getPlayers()) {
                 if (!raid.signups.stream().anyMatch(s -> s.player.name.equals(player.name))) {
                     writer.format("<input type=\"checkbox\" name=\"player\" value=\"%s\">%s<br/>", player.name, player.classString());
