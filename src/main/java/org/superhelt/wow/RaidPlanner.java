@@ -12,8 +12,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class RaidPlanner {
@@ -155,7 +154,41 @@ public class RaidPlanner {
             writer.println("</ul>");
         }
 
+        List<Raid> raids = raidDao.getRaids();
+        List<BenchedPlayer> benchedPlayers = getBenchedPlayers(raids, raid);
+
+        if(benchedPlayers.size()>0) {
+            writer.println("<h2>Benched</h2><ul>");
+            benchedPlayers.sort(Comparator.comparingInt((BenchedPlayer a) -> a.numBenched).reversed());
+            for(BenchedPlayer bp : benchedPlayers) {
+                writer.format("<li>%s: %d (%d)</li>", bp.player.classString(), bp.numBenched, bp.numBenchedTotal);
+            }
+            writer.println("</ul>");
+        }
         writer.println("</div>");
+    }
+
+    private List<BenchedPlayer> getBenchedPlayers(List<Raid> raids, Raid currentRaid) {
+        List<BenchedPlayer> benchedPlayers = new ArrayList<>();
+        for(Player player : currentRaid.acceptedPlayers()) {
+            int numBenched = 0;
+            int numBenchedTotal = 0;
+            for(Raid raid : raids) {
+                if(raid.isAccepted(player)) {
+                    for (Encounter encounter : raid.encounters) {
+                        if (!encounter.isParticipating(player)) {
+                            if (raid.start.equals(currentRaid.start))
+                                numBenched++;
+                            numBenchedTotal++;
+                        }
+                    }
+                }
+            }
+            if(numBenched>0) {
+                benchedPlayers.add(new BenchedPlayer(player, numBenched, numBenchedTotal));
+            }
+        }
+        return benchedPlayers;
     }
 
     private void addRaid(HttpServletRequest request, PrintWriter writer) {
@@ -284,5 +317,17 @@ public class RaidPlanner {
         writer.format("<form method=\"post\"><input type=\"hidden\" name=\"action\" value=\"addRaid\"/><input type=\"text\" name=\"time\" value=\"%s\"/><br/><input type=\"submit\"/></form>", df.format(LocalDate.now()));
         raids.forEach(r -> writer.format("<a href=\"?raid=%s\">%s</a><br/>\n", r.start, r.start));
         writer.println("</div>");
+    }
+
+    class BenchedPlayer {
+        final Player player;
+        final Integer numBenched;
+        final Integer numBenchedTotal;
+
+        public BenchedPlayer(Player player, Integer numBenched, Integer numBenchedTotal) {
+            this.player = player;
+            this.numBenched = numBenched;
+            this.numBenchedTotal = numBenchedTotal;
+        }
     }
 }
