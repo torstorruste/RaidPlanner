@@ -38,6 +38,10 @@ public class Raid {
         return this.signups.stream().filter(s->s.type==Signup.Type.ACCEPTED).map(s->s.player).distinct().collect(Collectors.toList());
     }
 
+    public boolean isAccepted(Player player) {
+        return this.signups.stream().anyMatch(s->s.type==Signup.Type.ACCEPTED && s.player.equals(player));
+    }
+
     public boolean isFinalized() {
         return finalized!=null;
     }

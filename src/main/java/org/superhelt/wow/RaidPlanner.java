@@ -154,25 +154,41 @@ public class RaidPlanner {
             writer.println("</ul>");
         }
 
-        List<BenchedPlayer> benchedPlayers = new ArrayList<>();
-        for(Player player : raid.acceptedPlayers()) {
-            int numBenched = 0;
-            for(Encounter encounter : raid.encounters) {
-                if(!encounter.isParticipating(player)) numBenched++;
-            }
-            if(numBenched>0) {
-                benchedPlayers.add(new BenchedPlayer(player, numBenched));
-            }
-        }
+        List<Raid> raids = raidDao.getRaids();
+        List<BenchedPlayer> benchedPlayers = getBenchedPlayers(raids, raid);
+
         if(benchedPlayers.size()>0) {
             writer.println("<h2>Benched</h2><ul>");
             benchedPlayers.sort(Comparator.comparingInt((BenchedPlayer a) -> a.numBenched).reversed());
             for(BenchedPlayer bp : benchedPlayers) {
-                writer.format("<li>%s: %d</li>", bp.player.classString(), bp.numBenched);
+                writer.format("<li>%s: %d (%d)</li>", bp.player.classString(), bp.numBenched, bp.numBenchedTotal);
             }
             writer.println("</ul>");
         }
         writer.println("</div>");
+    }
+
+    private List<BenchedPlayer> getBenchedPlayers(List<Raid> raids, Raid currentRaid) {
+        List<BenchedPlayer> benchedPlayers = new ArrayList<>();
+        for(Player player : currentRaid.acceptedPlayers()) {
+            int numBenched = 0;
+            int numBenchedTotal = 0;
+            for(Raid raid : raids) {
+                if(raid.isAccepted(player)) {
+                    for (Encounter encounter : raid.encounters) {
+                        if (!encounter.isParticipating(player)) {
+                            if (raid.start.equals(currentRaid.start))
+                                numBenched++;
+                            numBenchedTotal++;
+                        }
+                    }
+                }
+            }
+            if(numBenched>0) {
+                benchedPlayers.add(new BenchedPlayer(player, numBenched, numBenchedTotal));
+            }
+        }
+        return benchedPlayers;
     }
 
     private void addRaid(HttpServletRequest request, PrintWriter writer) {
@@ -306,10 +322,12 @@ public class RaidPlanner {
     class BenchedPlayer {
         final Player player;
         final Integer numBenched;
+        final Integer numBenchedTotal;
 
-        public BenchedPlayer(Player player, Integer numBenched) {
+        public BenchedPlayer(Player player, Integer numBenched, Integer numBenchedTotal) {
             this.player = player;
             this.numBenched = numBenched;
+            this.numBenchedTotal = numBenchedTotal;
         }
     }
 }
