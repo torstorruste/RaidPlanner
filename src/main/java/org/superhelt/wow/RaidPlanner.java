@@ -12,8 +12,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class RaidPlanner {
@@ -155,6 +154,24 @@ public class RaidPlanner {
             writer.println("</ul>");
         }
 
+        List<BenchedPlayer> benchedPlayers = new ArrayList<>();
+        for(Player player : raid.acceptedPlayers()) {
+            int numBenched = 0;
+            for(Encounter encounter : raid.encounters) {
+                if(!encounter.isParticipating(player)) numBenched++;
+            }
+            if(numBenched>0) {
+                benchedPlayers.add(new BenchedPlayer(player, numBenched));
+            }
+        }
+        if(benchedPlayers.size()>0) {
+            writer.println("<h2>Benched</h2><ul>");
+            benchedPlayers.sort(Comparator.comparingInt((BenchedPlayer a) -> a.numBenched).reversed());
+            for(BenchedPlayer bp : benchedPlayers) {
+                writer.format("<li>%s: %d</li>", bp.player.classString(), bp.numBenched);
+            }
+            writer.println("</ul>");
+        }
         writer.println("</div>");
     }
 
@@ -284,5 +301,15 @@ public class RaidPlanner {
         writer.format("<form method=\"post\"><input type=\"hidden\" name=\"action\" value=\"addRaid\"/><input type=\"text\" name=\"time\" value=\"%s\"/><br/><input type=\"submit\"/></form>", df.format(LocalDate.now()));
         raids.forEach(r -> writer.format("<a href=\"?raid=%s\">%s</a><br/>\n", r.start, r.start));
         writer.println("</div>");
+    }
+
+    class BenchedPlayer {
+        final Player player;
+        final Integer numBenched;
+
+        public BenchedPlayer(Player player, Integer numBenched) {
+            this.player = player;
+            this.numBenched = numBenched;
+        }
     }
 }
