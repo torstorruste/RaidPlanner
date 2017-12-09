@@ -38,7 +38,7 @@ public class RaidDao {
                 raids.add(mapRaid(rs));
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            log.error("Unable to get raids", e);
         }
         Collections.sort(raids, Comparator.comparing((Raid r) -> r.start).reversed());
         return raids;
@@ -162,11 +162,21 @@ public class RaidDao {
 
             try(ResultSet rs = st.executeQuery()) {
                 while(rs.next()) {
-                    Encounter.Boss boss = Encounter.Boss.valueOf(rs.getString("boss"));
+                    Encounter.Boss boss = getBoss(rs);
                     raid.encounters.add(new Encounter(boss));
                     addPlayers(raid, boss);
                 }
             }
+        }
+    }
+
+    private Encounter.Boss getBoss(ResultSet rs) throws SQLException {
+        String bossName = rs.getString("boss");
+        try {
+            return Encounter.Boss.valueOf(bossName);
+        } catch(Exception e) {
+            log.error("Unknown boss, {}", bossName);
+            return Encounter.Boss.UNKNOWN;
         }
     }
 

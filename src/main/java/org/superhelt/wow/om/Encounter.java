@@ -43,6 +43,6 @@ public class Encounter {
     }
 
     public enum Boss {
-        Goroth, Inquisition, Harjatan, Sisters, DesolateHost, Mistress, Maiden, Avatar, KilJaeden
+        GarothiWarbreaker, Felhounds, AntoranHighCommand, PortalKeeper, Eonar, Imonar, KinGaroth, Varimathras, Coven, Aggramar, Argus, UNKNOWN
     }
 }

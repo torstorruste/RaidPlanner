@@ -240,7 +240,7 @@ public class RaidPlanner {
             if (Arrays.stream(Encounter.Boss.values()).filter(b -> !raid.containsBoss(b)).count() > 0) {
                 writer.println("Add encounter: <select name=\"boss\">");
                 for (Encounter.Boss boss : Encounter.Boss.values()) {
-                    if (!raid.containsBoss(boss)) {
+                    if (!raid.containsBoss(boss) && boss!= Encounter.Boss.UNKNOWN) {
                         writer.format("<option value=\"%s\">%s</option>", boss, boss);
                     }
                 }
