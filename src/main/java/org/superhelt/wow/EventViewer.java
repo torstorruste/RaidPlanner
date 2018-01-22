@@ -31,6 +31,7 @@ public class EventViewer {
         String raid = request.getParameter("raid");
         String player = request.getParameter("player");
 
+        writer.println("<div style=\"clear:both; width: 100%\" ><a href=\"/signup\">Signups</a> <a href=\"/planRaid\">Plan</a> <a href=\"showEvents\">Events</a></div>");
         if(raid==null && player==null) {
             printAllEvents(writer);
         } else if(raid!=null) {

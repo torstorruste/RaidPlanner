@@ -136,6 +136,7 @@ public class RaidInviter {
 
     public void listRaids(PrintWriter writer) {
         List<Raid> raids = raidDao.getRaids();
+        writer.println("<div style=\"clear:both; width: 100%\" ><a href=\"/signup\">Signups</a> <a href=\"/planRaid\">Plan</a> <a href=\"showEvents\">Events</a></div>");
         writer.println("<div><h1>Raids</h1>");
         raids.forEach(r->writer.format("<a href=\"?raid=%s\">%s</a><br/>\n", r.start, r.start));
         writer.println("</div>");

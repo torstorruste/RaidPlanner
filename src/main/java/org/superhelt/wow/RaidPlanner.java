@@ -313,6 +313,7 @@ public class RaidPlanner {
 
     public void listRaids(PrintWriter writer) {
         List<Raid> raids = raidDao.getRaids();
+        writer.println("<div style=\"clear:both; width: 100%\" ><a href=\"/signup\">Signups</a> <a href=\"/planRaid\">Plan</a> <a href=\"showEvents\">Events</a></div>");
         writer.println("<div><h1>Raids</h1>");
         writer.format("<form method=\"post\"><input type=\"hidden\" name=\"action\" value=\"addRaid\"/><input type=\"text\" name=\"time\" value=\"%s\"/><br/><input type=\"submit\"/></form>", df.format(LocalDate.now()));
         raids.forEach(r -> writer.format("<a href=\"?raid=%s\">%s</a><br/>\n", r.start, r.start));
