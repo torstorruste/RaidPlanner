@@ -6,11 +6,13 @@ public class Player {
     public final String name;
     public final PlayerClass playerClass;
     public final List<Role> roles;
+    public final boolean active;
 
-    public Player(String name, PlayerClass playerClass, List<Role> roles) {
+    public Player(String name, PlayerClass playerClass, List<Role> roles, boolean active) {
         this.name = name;
         this.playerClass = playerClass;
         this.roles = roles;
+        this.active = active;
     }
 
     public boolean hasRole(Role role) {

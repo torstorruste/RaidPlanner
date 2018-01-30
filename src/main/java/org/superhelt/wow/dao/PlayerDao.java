@@ -24,20 +24,41 @@ public class PlayerDao {
         List<Player> players = new ArrayList<>();
 
         try(Statement st = conn.createStatement();
-            ResultSet rs = st.executeQuery("select * from player")) {
+            ResultSet rs = st.executeQuery("select * from player where active=1")) {
             while(rs.next()) {
                 String name = rs.getString("name");
                 Player.PlayerClass playerClass = Player.PlayerClass.valueOf(rs.getString("class"));
                 List<Player.Role> roles = getRoles(rs);
+                boolean active = rs.getInt("active")==1;
 
-                players.add(new Player(name, playerClass, roles));
+                players.add(new Player(name, playerClass, roles, active));
             }
-
         } catch (SQLException e) {
             log.error("Unable to find players", e);
         }
 
         return players;
+    }
+
+    public List<Player> getAllPlayers() {
+        List<Player> players = new ArrayList<>();
+
+        try(Statement st = conn.createStatement();
+            ResultSet rs = st.executeQuery("select * from player")) {
+            while(rs.next()) {
+                String name = rs.getString("name");
+                Player.PlayerClass playerClass = Player.PlayerClass.valueOf(rs.getString("class"));
+                List<Player.Role> roles = getRoles(rs);
+                boolean active = rs.getInt("active")==1;
+
+                players.add(new Player(name, playerClass, roles, active));
+            }
+        } catch (SQLException e) {
+            log.error("Unable to find players", e);
+        }
+
+        return players;
+
     }
 
     private List<Player.Role> getRoles(ResultSet rs) throws SQLException {
@@ -55,23 +76,25 @@ public class PlayerDao {
                 while (rs.next()) {
                     Player.PlayerClass playerClass = Player.PlayerClass.valueOf(rs.getString("class"));
                     List<Player.Role> roles = getRoles(rs);
+                    boolean active = rs.getInt("active")==1;
 
-                    return new Player(name, playerClass, roles);
+                    return new Player(name, playerClass, roles, active);
                 }
             }
         } catch (SQLException e) {
             log.error("Unable to find player with name {}", name, e);
         }
 
-        throw new IllegalArgumentException("Unknown player "+name);
+        return new Player(name, Player.PlayerClass.Druid, new ArrayList<>(), false);
     }
 
     public void updatePlayer(String originalName, Player player) {
-        try(PreparedStatement st = conn.prepareStatement("update player set name=?, class=?, roles=? where name=?")) {
+        try(PreparedStatement st = conn.prepareStatement("update player set name=?, class=?, roles=?, active=? where name=?")) {
             st.setString(1, player.name);
             st.setString(2, player.playerClass.toString());
             st.setString(3, serializeRoles(player));
-            st.setString(4, originalName);
+            st.setInt(4, player.active?1:0);
+            st.setString(5, originalName);
             st.executeUpdate();
         } catch (SQLException e) {
             log.error("Unable to update player {}", player, e);

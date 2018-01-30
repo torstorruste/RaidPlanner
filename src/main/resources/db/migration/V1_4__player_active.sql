@@ -1,0 +1,1 @@
+alter table player add active integer default 1;

@@ -66,6 +66,7 @@ public class PlayerAdmin extends AbstractHandler {
         String healer = request.getParameter("Healer");
         String melee = request.getParameter("Melee");
         String ranged = request.getParameter("Ranged");
+        boolean active = request.getParameter("active")!=null;
 
         List<Player.Role> roles = new ArrayList<>();
         if(tank!=null) roles.add(Player.Role.Tank);
@@ -73,12 +74,12 @@ public class PlayerAdmin extends AbstractHandler {
         if(melee!=null) roles.add(Player.Role.Melee);
         if(ranged!=null) roles.add(Player.Role.Ranged);
 
-        return new Player(name, Player.PlayerClass.valueOf(playerClass), roles);
+        return new Player(name, Player.PlayerClass.valueOf(playerClass), roles, active);
     }
 
     private void listPlayers(PrintWriter writer) {
-        writer.print("<table><tr><th>Name</th><th>Class</th><th>Tank</th><th>Healer</th><th>Melee</th><th>Ranged</th></tr>");
-        List<Player> players = playerDao.getPlayers();
+        writer.print("<table><tr><th>Name</th><th>Class</th><th>Tank</th><th>Healer</th><th>Melee</th><th>Ranged</th><th>Active</th></tr>");
+        List<Player> players = playerDao.getAllPlayers();
         players.sort(Comparator.comparing(a -> a.name.toLowerCase()));
         for(Player player : players) {
             writer.format("<tr><td><form method=\"post\"><input type=\"text\" name=\"name\" value=\"%s\"/></td>", player.name);
@@ -100,7 +101,15 @@ public class PlayerAdmin extends AbstractHandler {
                 }
             }
 
-            writer.format("<td><input type=\"submit\" value=\"Edit\"><input type=\"hidden\" name=\"originalName\" value=\"%s\"/><input type=\"hidden\" name=\"action\" value=\"edit\"/></form></td></tr>", player.name);
+            if(player.active) {
+                writer.print("<td><input type=\"checkbox\" name=\"active\" checked/></td>");
+            } else {
+                writer.print("<td><input type=\"checkbox\" name=\"active\"/></td>");
+            }
+
+            writer.print("<td><input type=\"submit\" value=\"Edit\">");
+            writer.format("<input type=\"hidden\" name=\"originalName\" value=\"%s\"/>", player.name);
+            writer.print("<input type=\"hidden\" name=\"action\" value=\"edit\"/></form></td></tr>");
         }
         writer.println("</table>");
     }

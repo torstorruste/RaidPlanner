@@ -15,7 +15,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class RaidPlanner {
+public class RaidPlanner extends AbstractHandler {
 
     private static final DateTimeFormatter df = DateTimeFormatter.ISO_LOCAL_DATE;
     private static final DateTimeFormatter tf = DateTimeFormatter.ISO_TIME;
@@ -29,13 +29,13 @@ public class RaidPlanner {
     }
 
     public void handle(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        super.handle(request, response.getWriter());
         PrintWriter writer = response.getWriter();
 
         String action = request.getParameter("action");
         if (action != null && action.equals("addRaid")) {
             addRaid(request, writer);
         }
-        printMenu(writer);
         listRaids(writer);
 
         if (request.getParameter("raid") != null) {
@@ -79,10 +79,6 @@ public class RaidPlanner {
             listAbsentees(raid, writer);
             showEvents(raid, writer);
         }
-    }
-
-    private void printMenu(PrintWriter writer) {
-        writer.println("<div style=\"clear:both; width: 100%\" ><a href=\"/signup\">Signups</a> <a href=\"/planRaid\">Plan</a> <a href=\"showEvents\">Events</a></div>");
     }
 
     private void removeEvent(HttpServletRequest request, Raid raid) {
