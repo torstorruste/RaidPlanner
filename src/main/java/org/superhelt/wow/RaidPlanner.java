@@ -33,9 +33,6 @@ public class RaidPlanner extends AbstractHandler {
         PrintWriter writer = response.getWriter();
 
         String action = request.getParameter("action");
-        if (action != null && action.equals("addRaid")) {
-            addRaid(request, writer);
-        }
         listRaids(writer);
 
         if (request.getParameter("raid") != null) {
@@ -191,17 +188,6 @@ public class RaidPlanner extends AbstractHandler {
         return benchedPlayers;
     }
 
-    private void addRaid(HttpServletRequest request, PrintWriter writer) {
-        LocalDate date = LocalDate.parse(request.getParameter("time"), df);
-        List<Raid> raids = raidDao.getRaids();
-        if (raids.stream().anyMatch(r -> r.start.isEqual(date))) {
-            writer.format("<h2>Raid at %s already exists</h2>", df.format(date));
-        } else {
-            writer.format("<h2>Adding raid: %s</h2>", df.format(date));
-            raidDao.addRaid(new Raid(date));
-        }
-    }
-
     private void removePlayer(HttpServletRequest request, Raid raid) {
         Encounter.Boss boss = Encounter.Boss.valueOf(request.getParameter("boss"));
         Player player = playerDao.getByName(request.getParameter("player"));
@@ -314,7 +300,6 @@ public class RaidPlanner extends AbstractHandler {
     public void listRaids(PrintWriter writer) {
         List<Raid> raids = raidDao.getRaids();
         writer.println("<div><h1>Raids</h1>");
-        writer.format("<form method=\"post\"><input type=\"hidden\" name=\"action\" value=\"addRaid\"/><input type=\"text\" name=\"time\" value=\"%s\"/><br/><input type=\"submit\"/></form>", df.format(LocalDate.now()));
         raids.forEach(r -> writer.format("<a href=\"?raid=%s\">%s</a><br/>\n", r.start, r.start));
         writer.println("</div>");
     }

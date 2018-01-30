@@ -17,6 +17,8 @@ import java.util.List;
 
 public class RaidInviter extends AbstractHandler {
 
+    private static final DateTimeFormatter df = DateTimeFormatter.ISO_LOCAL_DATE;
+
     private static final DateTimeFormatter dateFormatter = DateTimeFormatter.ISO_LOCAL_DATE;
 
     private final RaidDao raidDao;
@@ -30,12 +32,17 @@ public class RaidInviter extends AbstractHandler {
     public void handle(HttpServletRequest request, HttpServletResponse response) throws IOException {
         super.handle(request, response.getWriter());
         PrintWriter writer = response.getWriter();
+
+        String action = request.getParameter("action");
+        if (action != null && action.equals("addRaid")) {
+            addRaid(request, writer);
+        }
+
         listRaids(writer);
         if(request.getParameter("raid")!=null) {
             LocalDate raidStart = LocalDate.parse(request.getParameter("raid"), dateFormatter);
             Raid raid = raidDao.getRaid(raidStart);
 
-            String action = request.getParameter("action");
             if(action !=null) {
                 switch (action) {
                     case "signup":
@@ -138,7 +145,19 @@ public class RaidInviter extends AbstractHandler {
     public void listRaids(PrintWriter writer) {
         List<Raid> raids = raidDao.getRaids();
         writer.println("<div><h1>Raids</h1>");
+        writer.format("<form method=\"post\"><input type=\"hidden\" name=\"action\" value=\"addRaid\"/><input type=\"text\" name=\"time\" value=\"%s\"/><br/><input type=\"submit\"/></form>", df.format(LocalDate.now()));
         raids.forEach(r->writer.format("<a href=\"?raid=%s\">%s</a><br/>\n", r.start, r.start));
         writer.println("</div>");
+    }
+
+    private void addRaid(HttpServletRequest request, PrintWriter writer) {
+        LocalDate date = LocalDate.parse(request.getParameter("time"), df);
+        List<Raid> raids = raidDao.getRaids();
+        if (raids.stream().anyMatch(r -> r.start.isEqual(date))) {
+            writer.format("<h2>Raid at %s already exists</h2>", df.format(date));
+        } else {
+            writer.format("<h2>Adding raid: %s</h2>", df.format(date));
+            raidDao.addRaid(new Raid(date));
+        }
     }
 }
