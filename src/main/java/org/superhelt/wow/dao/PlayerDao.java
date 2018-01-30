@@ -78,6 +78,17 @@ public class PlayerDao {
         }
     }
 
+    public void addPlayer(Player player) {
+        try(PreparedStatement st = conn.prepareStatement("insert into player (name, class, roles) values (?, ?, ?)")) {
+            st.setString(1, player.name);
+            st.setString(2, player.playerClass.toString());
+            st.setString(3, serializeRoles(player));
+            st.executeUpdate();
+        } catch (SQLException e) {
+            log.error("Unable to add player", e);
+        }
+    }
+
     private String serializeRoles(Player player) {
         StringBuilder sb = new StringBuilder();
         String sep = "";

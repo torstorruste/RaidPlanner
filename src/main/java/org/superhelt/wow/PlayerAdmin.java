@@ -22,16 +22,44 @@ public class PlayerAdmin extends AbstractHandler {
     public void handle(HttpServletRequest request, HttpServletResponse response) throws IOException {
         super.handle(request, response.getWriter());
 
-        String originalName = request.getParameter("originalName");
-        if(originalName!=null) {
+        String action = request.getParameter("action");
+        if (action != null && action.equals("new")) {
+            newPlayer(request);
+        } else if(action!=null && action.equals("edit")) {
             updatePlayer(request);
         }
-
+        listNewPlayer(response.getWriter());
         listPlayers(response.getWriter());
+    }
+
+    private void newPlayer(HttpServletRequest request) {
+        Player player = deserializePlayer(request);
+
+        playerDao.addPlayer(player);
+    }
+
+    private void listNewPlayer(PrintWriter writer) {
+        writer.print("<form method=\"post\"><input type=\"hidden\" name=\"action\" value=\"new\">");
+        writer.print("<table><tr><th>Name</th><th>Class</th><th>Tank</th><th>Healer</th><th>Melee</th><th>Ranged</th></tr>");
+        writer.print("<tr><td><input type=\"text\" name=\"name\"/></td><td><select name=\"class\">");
+        for(Player.PlayerClass c : Player.PlayerClass.values()) {
+            writer.format("<option value=\"%s\">%s</option>", c, c);
+        }
+        writer.print("</td>");
+        for(Player.Role role : Player.Role.values()) {
+            writer.format("<td><input type=\"checkbox\" name=\"%s\"/></td>", role);
+        }
+        writer.print("<td><input type=\"submit\" value=\"Add\"/></td>");
+        writer.print("</table>");
     }
 
     private void updatePlayer(HttpServletRequest request) {
         String originalName = request.getParameter("originalName");
+        Player updatedPlayer = deserializePlayer(request);
+        playerDao.updatePlayer(originalName, updatedPlayer);
+    }
+
+    private Player deserializePlayer(HttpServletRequest request) {
         String name = request.getParameter("name");
         String playerClass = request.getParameter("class");
         String tank = request.getParameter("Tank");
@@ -45,15 +73,13 @@ public class PlayerAdmin extends AbstractHandler {
         if(melee!=null) roles.add(Player.Role.Melee);
         if(ranged!=null) roles.add(Player.Role.Ranged);
 
-
-        Player updatedPlayer = new Player(name, Player.PlayerClass.valueOf(playerClass), roles);
-        playerDao.updatePlayer(originalName, updatedPlayer);
+        return new Player(name, Player.PlayerClass.valueOf(playerClass), roles);
     }
 
     private void listPlayers(PrintWriter writer) {
         writer.print("<table><tr><th>Name</th><th>Class</th><th>Tank</th><th>Healer</th><th>Melee</th><th>Ranged</th></tr>");
         List<Player> players = playerDao.getPlayers();
-        players.sort(Comparator.comparing(a -> a.name));
+        players.sort(Comparator.comparing(a -> a.name.toLowerCase()));
         for(Player player : players) {
             writer.format("<tr><td><form method=\"post\"><input type=\"text\" name=\"name\" value=\"%s\"/></td>", player.name);
             writer.print("<td><select name=\"class\">");
@@ -74,7 +100,7 @@ public class PlayerAdmin extends AbstractHandler {
                 }
             }
 
-            writer.format("<td><input type=\"submit\" value=\"Change\"><input type=\"hidden\" name=\"originalName\" value=\"%s\"/></form></td></tr>", player.name);
+            writer.format("<td><input type=\"submit\" value=\"Edit\"><input type=\"hidden\" name=\"originalName\" value=\"%s\"/><input type=\"hidden\" name=\"action\" value=\"edit\"/></form></td></tr>", player.name);
         }
         writer.println("</table>");
     }
