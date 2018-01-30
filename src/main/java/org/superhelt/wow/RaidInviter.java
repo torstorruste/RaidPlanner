@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
-public class RaidInviter {
+public class RaidInviter extends AbstractHandler {
 
     private static final DateTimeFormatter dateFormatter = DateTimeFormatter.ISO_LOCAL_DATE;
 
@@ -28,6 +28,7 @@ public class RaidInviter {
     }
 
     public void handle(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        super.handle(request, response.getWriter());
         PrintWriter writer = response.getWriter();
         listRaids(writer);
         if(request.getParameter("raid")!=null) {
@@ -136,7 +137,6 @@ public class RaidInviter {
 
     public void listRaids(PrintWriter writer) {
         List<Raid> raids = raidDao.getRaids();
-        writer.println("<div style=\"clear:both; width: 100%\" ><a href=\"/signup\">Signups</a> <a href=\"/planRaid\">Plan</a> <a href=\"showEvents\">Events</a></div>");
         writer.println("<div><h1>Raids</h1>");
         raids.forEach(r->writer.format("<a href=\"?raid=%s\">%s</a><br/>\n", r.start, r.start));
         writer.println("</div>");

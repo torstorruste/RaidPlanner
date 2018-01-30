@@ -35,7 +35,7 @@ public class RaidPlanner {
         if (action != null && action.equals("addRaid")) {
             addRaid(request, writer);
         }
-
+        printMenu(writer);
         listRaids(writer);
 
         if (request.getParameter("raid") != null) {
@@ -79,6 +79,10 @@ public class RaidPlanner {
             listAbsentees(raid, writer);
             showEvents(raid, writer);
         }
+    }
+
+    private void printMenu(PrintWriter writer) {
+        writer.println("<div style=\"clear:both; width: 100%\" ><a href=\"/signup\">Signups</a> <a href=\"/planRaid\">Plan</a> <a href=\"showEvents\">Events</a></div>");
     }
 
     private void removeEvent(HttpServletRequest request, Raid raid) {
@@ -313,7 +317,6 @@ public class RaidPlanner {
 
     public void listRaids(PrintWriter writer) {
         List<Raid> raids = raidDao.getRaids();
-        writer.println("<div style=\"clear:both; width: 100%\" ><a href=\"/signup\">Signups</a> <a href=\"/planRaid\">Plan</a> <a href=\"showEvents\">Events</a></div>");
         writer.println("<div><h1>Raids</h1>");
         writer.format("<form method=\"post\"><input type=\"hidden\" name=\"action\" value=\"addRaid\"/><input type=\"text\" name=\"time\" value=\"%s\"/><br/><input type=\"submit\"/></form>", df.format(LocalDate.now()));
         raids.forEach(r -> writer.format("<a href=\"?raid=%s\">%s</a><br/>\n", r.start, r.start));

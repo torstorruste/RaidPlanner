@@ -65,6 +65,29 @@ public class PlayerDao {
 
         throw new IllegalArgumentException("Unknown player "+name);
     }
+
+    public void updatePlayer(String originalName, Player player) {
+        try(PreparedStatement st = conn.prepareStatement("update player set name=?, class=?, roles=? where name=?")) {
+            st.setString(1, player.name);
+            st.setString(2, player.playerClass.toString());
+            st.setString(3, serializeRoles(player));
+            st.setString(4, originalName);
+            st.executeUpdate();
+        } catch (SQLException e) {
+            log.error("Unable to update player {}", player, e);
+        }
+    }
+
+    private String serializeRoles(Player player) {
+        StringBuilder sb = new StringBuilder();
+        String sep = "";
+        for(Player.Role role : player.roles) {
+            sb.append(sep).append(role);
+            sep =",";
+        }
+
+        return sb.toString();
+    }
 }
 
 

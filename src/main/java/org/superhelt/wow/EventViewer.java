@@ -14,7 +14,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class EventViewer {
+public class EventViewer extends AbstractHandler {
 
     private static final DateTimeFormatter dateFormatter = DateTimeFormatter.ISO_LOCAL_DATE;
 
@@ -27,11 +27,10 @@ public class EventViewer {
     }
 
     public void handle(HttpServletRequest request, PrintWriter writer) throws IOException {
-
+        super.handle(request, writer);
         String raid = request.getParameter("raid");
         String player = request.getParameter("player");
 
-        writer.println("<div style=\"clear:both; width: 100%\" ><a href=\"/signup\">Signups</a> <a href=\"/planRaid\">Plan</a> <a href=\"showEvents\">Events</a></div>");
         if(raid==null && player==null) {
             printAllEvents(writer);
         } else if(raid!=null) {

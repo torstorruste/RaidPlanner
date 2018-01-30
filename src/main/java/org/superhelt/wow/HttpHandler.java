@@ -36,6 +36,7 @@ public class HttpHandler extends AbstractHandler {
             RaidPlanner raidPlanner = new RaidPlanner(raidDao, playerDao);
             RaidInviter raidInviter = new RaidInviter(raidDao, playerDao);
             RaidViewer raidViewer = new RaidViewer(raidDao, playerDao);
+            PlayerAdmin playerAdmin = new PlayerAdmin(playerDao);
 
             response.setContentType("text/html;charset=utf-8");
             response.setStatus(HttpServletResponse.SC_OK);
@@ -53,6 +54,9 @@ public class HttpHandler extends AbstractHandler {
                 case "/signup":
                     title = "ANE Raid Signup";
                     break;
+                case "/player":
+                    title = "ANE Raid Players";
+                    break;
                 default:
                     title = "ANE Raid Setup";
             }
@@ -67,6 +71,9 @@ public class HttpHandler extends AbstractHandler {
                     break;
                 case "/signup":
                     raidInviter.handle(request, response);
+                    break;
+                case "/player":
+                    playerAdmin.handle(request, response);
                     break;
                 default:
                     raidViewer.handle(request, response);
