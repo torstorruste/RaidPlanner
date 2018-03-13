@@ -164,7 +164,7 @@ public class RaidPlanner extends AbstractHandler {
             writer.println("<tr><th><th>Today</th><th>Two weeks</th><th>Total</th></tr>");
             playerStats.sort(Comparator.comparingInt((PlayerStat a) -> a.getToday()).reversed());
             for(PlayerStat bp : playerStats) {
-                writer.format("<tr><td>%s</td><td>%d</td><td>%d</td><td>%d</td></tr>", bp.getPlayer().classString(), bp.getToday(), bp.getTwoWeeks(), bp.getTotal());
+                writer.format("<tr><td>%s</td><td>%d</td><td>%d</td><td>%d</td><td>%d</td></tr>", bp.getPlayer().classString(), bp.getToday(), bp.getTwoWeeks(), bp.getMonth(), bp.getTotal());
             }
             writer.println("</table");
         }
@@ -177,6 +177,7 @@ public class RaidPlanner extends AbstractHandler {
             int numBenchedToday = 0;
             int numBenchedTotal = 0;
             int numBenchedTwoWeeks = 0;
+            int numBenchedMonth = 0;
             for(Raid raid : raids) {
                 if(raid.isAccepted(player)) {
                     for (Encounter encounter : raid.encounters) {
@@ -187,13 +188,16 @@ public class RaidPlanner extends AbstractHandler {
                             if (raid.start.isAfter(LocalDate.now().minus(2, ChronoUnit.WEEKS))) {
                                 numBenchedTwoWeeks++;
                             }
+                            if(raid.start.isAfter(LocalDate.now().minus(1, ChronoUnit.MONTHS))) {
+                                numBenchedMonth++;
+                            }
                             numBenchedTotal++;
                         }
                     }
                 }
             }
             if(numBenchedToday>0) {
-                playerStats.add(new PlayerStat(player, numBenchedToday, numBenchedTwoWeeks, numBenchedTotal));
+                playerStats.add(new PlayerStat(player, numBenchedToday, numBenchedTwoWeeks, numBenchedMonth, numBenchedTotal));
             }
         }
         return playerStats;

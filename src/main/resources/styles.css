@@ -48,3 +48,18 @@ table.statTable td {
   border: 1px solid black;
   text-align: center;
 }
+
+td.green {
+  background-color: #00FF96;
+  color: #000000;
+}
+
+td.yellow {
+  background-color: #E5EB34;
+  color: #000000;
+}
+
+td.red {
+  background-color: #C41F3B;
+  color: #000000;
+}

@@ -4,16 +4,18 @@ public class PlayerStat {
     private final Player player;
     private int today;
     private int twoWeeks;
+    private int month;
     private int total;
 
     public PlayerStat(Player player) {
         this.player = player;
     }
 
-    public PlayerStat(Player player, int today, int twoWeeks, int total) {
+    public PlayerStat(Player player, int today, int twoWeeks, int month, int total) {
         this.player = player;
         this.today = today;
         this.twoWeeks = twoWeeks;
+        this.month = month;
         this.total = total;
     }
 
@@ -33,6 +35,10 @@ public class PlayerStat {
         return total;
     }
 
+    public int getMonth() {
+        return month;
+    }
+
     public void incrementToday() {
         total++;
     }
@@ -43,5 +49,9 @@ public class PlayerStat {
 
     public void incrementTotal() {
         total++;
+    }
+
+    public void incrementMonth() {
+        month++;
     }
 }

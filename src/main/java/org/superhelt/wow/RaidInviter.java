@@ -110,23 +110,45 @@ public class RaidInviter extends AbstractHandler {
             }
         }
 
-        writer.println("<table class=\"statTable\"><tr><th>Player</th><th colspan=\"2\">Tentative</th><th colspan=\"2\">Declined</th>");
-        writer.println("<th colspan=\"2\">Unknown</th><th colspan=\"2\">Noshow</th><th colspan=\"2\">Late</th></tr>");
-        writer.println("<tr><th></th><th>Two Weeks</th><th>Total</th><th>Two Weeks</th><th>Total</th><th>Two Weeks</th><th>Total</th><th>Two Weeks</th><th>Total</th><th>Two Weeks</th><th>Total</th></tr>");
+        writer.println("<table class=\"statTable\"><tr><th>Player</th><th colspan=\"3\">Tentative</th><th colspan=\"3\">Declined</th>");
+        writer.println("<th colspan=\"3\">Unknown</th><th colspan=\"3\">Noshow</th><th colspan=\"3\">Late</th></tr>");
+
+        printHeaders(writer, 5);
         for (Player player : players) {
-            PlayerStat tentative = tentativeMap.get(player);
-            PlayerStat declined = declinedMap.get(player);
-            PlayerStat unknown = unknownMap.get(player);
-            PlayerStat noshow = noShowMap.get(player);
-            PlayerStat late = lateMap.get(player);
-            writer.format("<tr><td>%s</td><td>%d</td><td>%d</td><td>%d</td><td>%d</td><td>%d</td><td>%d</td><td>%d</td><td>%d</td><td>%d</td><td>%d</td></tr>\n",
-                    player.classString(), tentative.getTwoWeeks(), tentative.getTotal(),
-                    declined.getTwoWeeks(), declined.getTotal(),
-                    unknown.getTwoWeeks(), unknown.getTotal(),
-                    noshow.getTwoWeeks(), noshow.getTotal(),
-                    late.getTwoWeeks(), late.getTotal());
+            writer.format("<tr><td>%s</td>", player.classString());
+            printStats(writer, tentativeMap.get(player));
+            printStats(writer, declinedMap.get(player));
+            printStats(writer, unknownMap.get(player));
+            printStats(writer, noShowMap.get(player));
+            printStats(writer, lateMap.get(player));
+            writer.println("</tr>");
         }
         writer.println("</table>");
+    }
+
+    private void printHeaders(PrintWriter writer, int numHeaders) {
+
+        writer.print("<tr><th></th>");
+        for(int i=0;i<numHeaders;i++) {
+            writer.print("<th>Two Weeks</th><th>Month</th><th>Total</th>");
+        }
+        writer.println("</tr>");
+    }
+
+    private void printStats(PrintWriter writer, PlayerStat stat) {
+        String twoWeekClass = getCellClass(stat.getTwoWeeks(), 1, 4);
+        String monthClass = getCellClass(stat.getMonth(), 3, 8);
+        String totalClass = getCellClass(stat.getTotal(), 10, 20);
+        writer.format("<td class=\"%s\">%d</td><td class=\"%s\">%d</td><td class=\"%s\">%d</td>",
+                twoWeekClass, stat.getTwoWeeks(),
+                monthClass, stat.getMonth(),
+                totalClass, stat.getTotal());
+    }
+
+    private String getCellClass(int num, int yellowThreshold, int redThreshold) {
+        if(num>=redThreshold) return "red";
+        if(num>=yellowThreshold) return "yellow";
+        return "green";
     }
 
     private void incrementStats(PlayerStat stat, Raid raid) {
@@ -136,6 +158,9 @@ public class RaidInviter extends AbstractHandler {
         }
         if (raid.start.isAfter(LocalDate.now().minus(2, ChronoUnit.WEEKS))) {
             stat.incrementTwoWeeks();
+        }
+        if(raid.start.isAfter(LocalDate.now().minus(1, ChronoUnit.MONTHS))) {
+            stat.incrementMonth();
         }
     }
 
