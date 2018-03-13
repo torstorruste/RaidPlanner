@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -69,7 +70,7 @@ public class EventViewer extends AbstractHandler {
     }
 
     public void printAllEvents(PrintWriter writer) {
-        List<Raid> raids = raidDao.getRaids();
+        List<Raid> raids = raidDao.getRaids().stream().filter(r->r.start.isAfter(LocalDate.now().minus(2, ChronoUnit.WEEKS))).collect(Collectors.toList());
         List<Player> players = playerDao.getActivePlayers();
         writer.print("<table><tr><th>Player</th>");
         for(Raid raid : raids) {
