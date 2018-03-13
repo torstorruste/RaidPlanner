@@ -24,7 +24,7 @@ public class PlayerDao {
         List<Player> players = new ArrayList<>();
 
         try(Statement st = conn.createStatement();
-            ResultSet rs = st.executeQuery("select * from player where active=1")) {
+            ResultSet rs = st.executeQuery("select * from player where active=1 order by name")) {
             while(rs.next()) {
                 players.add(map(rs));
             }
@@ -39,7 +39,7 @@ public class PlayerDao {
         List<Player> players = new ArrayList<>();
 
         try(Statement st = conn.createStatement();
-            ResultSet rs = st.executeQuery("select * from player")) {
+            ResultSet rs = st.executeQuery("select * from player order by name")) {
             while(rs.next()) {
                 players.add(map(rs));
             }
