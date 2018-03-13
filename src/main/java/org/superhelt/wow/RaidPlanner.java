@@ -12,7 +12,11 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.List;
 import java.util.stream.Collectors;
 
 public class RaidPlanner extends AbstractHandler {
@@ -155,12 +159,14 @@ public class RaidPlanner extends AbstractHandler {
         List<BenchedPlayer> benchedPlayers = getBenchedPlayers(raids, raid);
 
         if(benchedPlayers.size()>0) {
-            writer.println("<h2>Benched</h2><ul>");
-            benchedPlayers.sort(Comparator.comparingInt((BenchedPlayer a) -> a.numBenched).reversed());
+            writer.println("<h2>Benched</h2><table>");
+            writer.println("<tr><th>Player</th><th colspan=\"3\">Benched</th>");
+            writer.println("<tr><th><th>Today</th><th>Two weeks</th><th>Total</th></tr>");
+            benchedPlayers.sort(Comparator.comparingInt((BenchedPlayer a) -> a.numBenchedToday).reversed());
             for(BenchedPlayer bp : benchedPlayers) {
-                writer.format("<li>%s: %d (%d)</li>", bp.player.classString(), bp.numBenched, bp.numBenchedTotal);
+                writer.format("<tr><td>%s</td><td>%d</td><td>%d</td><td>%d</td></tr>", bp.player.classString(), bp.numBenchedToday, bp.numBenchedTwoWeeks, bp.numBenchedTotal);
             }
-            writer.println("</ul>");
+            writer.println("</table");
         }
         writer.println("</div>");
     }
@@ -168,21 +174,26 @@ public class RaidPlanner extends AbstractHandler {
     private List<BenchedPlayer> getBenchedPlayers(List<Raid> raids, Raid currentRaid) {
         List<BenchedPlayer> benchedPlayers = new ArrayList<>();
         for(Player player : currentRaid.acceptedPlayers()) {
-            int numBenched = 0;
+            int numBenchedToday = 0;
             int numBenchedTotal = 0;
+            int numBenchedTwoWeeks = 0;
             for(Raid raid : raids) {
                 if(raid.isAccepted(player)) {
                     for (Encounter encounter : raid.encounters) {
                         if (!encounter.isParticipating(player)) {
-                            if (raid.start.equals(currentRaid.start))
-                                numBenched++;
+                            if (raid.start.equals(currentRaid.start)) {
+                                numBenchedToday++;
+                            }
+                            if (raid.start.isAfter(LocalDate.now().minus(2, ChronoUnit.WEEKS))) {
+                                numBenchedTwoWeeks++;
+                            }
                             numBenchedTotal++;
                         }
                     }
                 }
             }
-            if(numBenched>0) {
-                benchedPlayers.add(new BenchedPlayer(player, numBenched, numBenchedTotal));
+            if(numBenchedToday>0) {
+                benchedPlayers.add(new BenchedPlayer(player, numBenchedToday, numBenchedTwoWeeks, numBenchedTotal));
             }
         }
         return benchedPlayers;
@@ -306,12 +317,14 @@ public class RaidPlanner extends AbstractHandler {
 
     class BenchedPlayer {
         final Player player;
-        final Integer numBenched;
-        final Integer numBenchedTotal;
+        final int numBenchedToday;
+        final int numBenchedTwoWeeks;
+        final int numBenchedTotal;
 
-        public BenchedPlayer(Player player, Integer numBenched, Integer numBenchedTotal) {
+        public BenchedPlayer(Player player, int numBenchedToday, int numBenchedTwoWeeks, int numBenchedTotal) {
             this.player = player;
-            this.numBenched = numBenched;
+            this.numBenchedToday = numBenchedToday;
+            this.numBenchedTwoWeeks = numBenchedTwoWeeks;
             this.numBenchedTotal = numBenchedTotal;
         }
     }
