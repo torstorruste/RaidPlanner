@@ -3,6 +3,7 @@ package org.superhelt.wow;
 import org.superhelt.wow.dao.PlayerDao;
 import org.superhelt.wow.dao.RaidDao;
 import org.superhelt.wow.om.Player;
+import org.superhelt.wow.om.PlayerStat;
 import org.superhelt.wow.om.Raid;
 import org.superhelt.wow.om.Signup;
 
@@ -13,7 +14,8 @@ import java.io.PrintWriter;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.List;
+import java.time.temporal.ChronoUnit;
+import java.util.*;
 
 public class RaidInviter extends AbstractHandler {
 
@@ -39,11 +41,11 @@ public class RaidInviter extends AbstractHandler {
         }
 
         listRaids(writer);
-        if(request.getParameter("raid")!=null) {
+        if (request.getParameter("raid") != null) {
             LocalDate raidStart = LocalDate.parse(request.getParameter("raid"), dateFormatter);
             Raid raid = raidDao.getRaid(raidStart);
 
-            if(action !=null) {
+            if (action != null) {
                 switch (action) {
                     case "signup":
                         signup(request, writer, raid);
@@ -58,17 +60,74 @@ public class RaidInviter extends AbstractHandler {
 
             printSignupForm(writer, raid);
             printSignups(writer, raid);
+        } else {
+            printSignupStats(writer);
+        }
+    }
+
+    private void printSignupStats(PrintWriter writer) {
+        writer.println("<h1>Stats</h1>");
+
+        Map<Player, PlayerStat> tentativeMap = new HashMap<>();
+        Map<Player, PlayerStat> declinedMap = new HashMap<>();
+        Map<Player, PlayerStat> unknownMap = new HashMap<>();
+
+        List<Player> players = playerDao.getActivePlayers();
+        List<Raid> raids = raidDao.getRaids();
+        raids.sort(Comparator.comparing(r->r.start));
+        for (Player player : players) {
+            boolean alreadyJoined = false;
+            for (Raid raid : raids) {
+                if(alreadyJoined || raid.getSignupStatus(player).isPresent()) {
+                    PlayerStat tenative = tentativeMap.computeIfAbsent(player, (k) -> new PlayerStat(k));
+                    PlayerStat declined = declinedMap.computeIfAbsent(player, (k) -> new PlayerStat(k));
+                    PlayerStat unknown = unknownMap.computeIfAbsent(player, (k) -> new PlayerStat(k));
+
+                    Optional<Signup.Type> type = raid.getSignupStatus(player);
+                    if (!type.isPresent()) { // Unknown - did not sign up for the raid
+                        incrementStats(unknown, raid);
+                    } else if (type.get().equals(Signup.Type.TENTATIVE)) {
+                        incrementStats(tenative, raid);
+                    } else if (type.get().equals(Signup.Type.DECLINED)) {
+                        incrementStats(declined, raid);
+                    }
+                    alreadyJoined = true;
+                }
+            }
+        }
+
+        writer.println("<table class=\"statTable\"><tr><th>Player</th><th colspan=\"2\">Tentative</th><th colspan=\"2\">Declined</th><th colspan=\"2\">Unknown</th></tr>");
+        writer.println("<tr><th></th><th>Two Weeks</th><th>Total</th><th>Two Weeks</th><th>Total</th><th>Two Weeks</th><th>Total</th></tr>");
+        for (Player player : players) {
+            PlayerStat tentative = tentativeMap.get(player);
+            PlayerStat declined = declinedMap.get(player);
+            PlayerStat unknown = unknownMap.get(player);
+            writer.format("<tr><td>%s</td><td>%d</td><td>%d</td><td>%d</td><td>%d</td><td>%d</td><td>%d</td></tr>\n",
+                    player.classString(), tentative.getTwoWeeks(), tentative.getTotal(),
+                    declined.getTwoWeeks(), declined.getTotal(),
+                    unknown.getTwoWeeks(), unknown.getTotal());
+        }
+        writer.println("</table>");
+    }
+
+    private void incrementStats(PlayerStat stat, Raid raid) {
+        stat.incrementTotal();
+        if (raid.start.equals(LocalDate.now())) {
+            stat.incrementToday();
+        }
+        if (raid.start.isAfter(LocalDate.now().minus(2, ChronoUnit.WEEKS))) {
+            stat.incrementTwoWeeks();
         }
     }
 
     private void printSignups(PrintWriter writer, Raid raid) {
         writer.println("<div><h1>Signups</h1><ul>");
-        for(Signup signup : raid.signups) {
+        for (Signup signup : raid.signups) {
             writer.println("<li>");
-            if(!raid.isFinalized()) {
+            if (!raid.isFinalized()) {
                 writer.println("<form method=\"post\">");
             }
-            switch(signup.type) {
+            switch (signup.type) {
                 case ACCEPTED:
                     writer.format("%s signed up for the raid", signup.player.classString());
                     break;
@@ -79,7 +138,7 @@ public class RaidInviter extends AbstractHandler {
                     writer.format("%s declined the raid with the following comment: %s", signup.player.classString(), signup.comment);
                     break;
             }
-            if(!raid.isFinalized()) {
+            if (!raid.isFinalized()) {
                 writer.format("<input type=\"hidden\" name=\"raid\" value=\"%s\"/><input type=\"hidden\" name=\"player\" value=\"%s\"/>" +
                         "<input type=\"hidden\" name=\"action\" value=\"unsign\"><input type=\"submit\" value=\"remove\"></form>", dateFormatter.format(raid.start), signup.player.name);
             }
@@ -91,7 +150,7 @@ public class RaidInviter extends AbstractHandler {
 
     private void signup(HttpServletRequest request, PrintWriter writer, Raid raid) {
         String[] players = request.getParameterValues("player");
-        for(String playerName : players) {
+        for (String playerName : players) {
             Player player = playerDao.getByName(playerName);
             Signup.Type type = Signup.Type.valueOf(request.getParameter("type"));
             String comment = request.getParameter("comment");
@@ -115,7 +174,7 @@ public class RaidInviter extends AbstractHandler {
     private void printSignupForm(PrintWriter writer, Raid raid) {
         writer.format("<div><h1>%s</h1>", dateFormatter.format(raid.start));
 
-        if(raid.isFinalized()) {
+        if (raid.isFinalized()) {
             writer.format("<h2>Raid is finalized</h2>");
         } else {
             writer.println("<script language=\"JavaScript\">function toggle(source) {\n" +
@@ -127,7 +186,7 @@ public class RaidInviter extends AbstractHandler {
                     "</script>");
             writer.format("<form method=\"post\"><input type=\"hidden\" name=\"action\" value=\"signup\"><input type=\"hidden\" name=\"raid\" value=\"%s\"/>", raid.start);
             writer.println("<input type=\"checkbox\" onClick=\"toggle(this)\"/>Toggle all<br/>");
-            for (Player player : playerDao.getPlayers()) {
+            for (Player player : playerDao.getActivePlayers()) {
                 if (!raid.signups.stream().anyMatch(s -> s.player.name.equals(player.name))) {
                     writer.format("<input type=\"checkbox\" name=\"player\" value=\"%s\">%s<br/>", player.name, player.classString());
                 }
@@ -146,7 +205,7 @@ public class RaidInviter extends AbstractHandler {
         List<Raid> raids = raidDao.getRaids();
         writer.println("<div><h1>Raids</h1>");
         writer.format("<form method=\"post\"><input type=\"hidden\" name=\"action\" value=\"addRaid\"/><input type=\"text\" name=\"time\" value=\"%s\"/><br/><input type=\"submit\"/></form>", df.format(LocalDate.now()));
-        raids.forEach(r->writer.format("<a href=\"?raid=%s\">%s</a><br/>\n", r.start, r.start));
+        raids.forEach(r -> writer.format("<a href=\"?raid=%s\">%s</a><br/>\n", r.start, r.start));
         writer.println("</div>");
     }
 

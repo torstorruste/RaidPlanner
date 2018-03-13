@@ -56,7 +56,7 @@ public class EventViewer extends AbstractHandler {
     }
 
     public void printRaid(PrintWriter writer, Raid raid) {
-        List<Player> players = playerDao.getPlayers();
+        List<Player> players = playerDao.getActivePlayers();
         writer.format("<table><tr><th>%s</th></tr>", dateFormatter.format(raid.start));
 
         players.forEach(p->{
@@ -70,7 +70,7 @@ public class EventViewer extends AbstractHandler {
 
     public void printAllEvents(PrintWriter writer) {
         List<Raid> raids = raidDao.getRaids();
-        List<Player> players = playerDao.getPlayers();
+        List<Player> players = playerDao.getActivePlayers();
         writer.print("<table><tr><th>Player</th>");
         for(Raid raid : raids) {
             writer.format("<th><a href=\"?raid=%s\">%s</a></th>", dateFormatter.format(raid.start), dateFormatter.format(raid.start));

@@ -20,18 +20,13 @@ public class PlayerDao {
         conn = connection;
     }
 
-    public List<Player> getPlayers() {
+    public List<Player> getActivePlayers() {
         List<Player> players = new ArrayList<>();
 
         try(Statement st = conn.createStatement();
             ResultSet rs = st.executeQuery("select * from player where active=1")) {
             while(rs.next()) {
-                String name = rs.getString("name");
-                Player.PlayerClass playerClass = Player.PlayerClass.valueOf(rs.getString("class"));
-                List<Player.Role> roles = getRoles(rs);
-                boolean active = rs.getInt("active")==1;
-
-                players.add(new Player(name, playerClass, roles, active));
+                players.add(map(rs));
             }
         } catch (SQLException e) {
             log.error("Unable to find players", e);
@@ -46,19 +41,22 @@ public class PlayerDao {
         try(Statement st = conn.createStatement();
             ResultSet rs = st.executeQuery("select * from player")) {
             while(rs.next()) {
-                String name = rs.getString("name");
-                Player.PlayerClass playerClass = Player.PlayerClass.valueOf(rs.getString("class"));
-                List<Player.Role> roles = getRoles(rs);
-                boolean active = rs.getInt("active")==1;
-
-                players.add(new Player(name, playerClass, roles, active));
+                players.add(map(rs));
             }
         } catch (SQLException e) {
             log.error("Unable to find players", e);
         }
 
         return players;
+    }
 
+    public Player map(ResultSet rs) throws SQLException {
+        String name = rs.getString("name");
+        Player.PlayerClass playerClass = Player.PlayerClass.valueOf(rs.getString("class"));
+        List<Player.Role> roles = getRoles(rs);
+        boolean active = rs.getInt("active")==1;
+
+        return new Player(name, playerClass, roles, active);
     }
 
     private List<Player.Role> getRoles(ResultSet rs) throws SQLException {

@@ -101,7 +101,7 @@ public class RaidPlanner extends AbstractHandler {
     private void showEvents(Raid raid, PrintWriter writer) {
         writer.println("<div>");
 
-        List<Player> players = playerDao.getPlayers();
+        List<Player> players = playerDao.getActivePlayers();
 
         writer.println("<form method=\"post\"><input type=\"hidden\" name=\"action\" value=\"addEvent\"/>");
         writer.println("<select name=\"player\">");
@@ -149,30 +149,30 @@ public class RaidPlanner extends AbstractHandler {
         }
 
         List<Player> knownPlayers = raid.signups.stream().map(s -> s.player).distinct().collect(Collectors.toList());
-        if (knownPlayers.size() < playerDao.getPlayers().size()) {
+        if (knownPlayers.size() < playerDao.getActivePlayers().size()) {
             writer.println("<h2>Unknown</h2><ul>");
-            playerDao.getPlayers().stream().filter(p -> !knownPlayers.contains(p)).forEach(p -> writer.format("<li>%s</li>", p.classString()));
+            playerDao.getActivePlayers().stream().filter(p -> !knownPlayers.contains(p)).forEach(p -> writer.format("<li>%s</li>", p.classString()));
             writer.println("</ul>");
         }
 
         List<Raid> raids = raidDao.getRaids();
-        List<BenchedPlayer> benchedPlayers = getBenchedPlayers(raids, raid);
+        List<PlayerStat> playerStats = getBenchedPlayers(raids, raid);
 
-        if(benchedPlayers.size()>0) {
+        if(playerStats.size()>0) {
             writer.println("<h2>Benched</h2><table>");
             writer.println("<tr><th>Player</th><th colspan=\"3\">Benched</th>");
             writer.println("<tr><th><th>Today</th><th>Two weeks</th><th>Total</th></tr>");
-            benchedPlayers.sort(Comparator.comparingInt((BenchedPlayer a) -> a.numBenchedToday).reversed());
-            for(BenchedPlayer bp : benchedPlayers) {
-                writer.format("<tr><td>%s</td><td>%d</td><td>%d</td><td>%d</td></tr>", bp.player.classString(), bp.numBenchedToday, bp.numBenchedTwoWeeks, bp.numBenchedTotal);
+            playerStats.sort(Comparator.comparingInt((PlayerStat a) -> a.getToday()).reversed());
+            for(PlayerStat bp : playerStats) {
+                writer.format("<tr><td>%s</td><td>%d</td><td>%d</td><td>%d</td></tr>", bp.getPlayer().classString(), bp.getToday(), bp.getTwoWeeks(), bp.getTotal());
             }
             writer.println("</table");
         }
         writer.println("</div>");
     }
 
-    private List<BenchedPlayer> getBenchedPlayers(List<Raid> raids, Raid currentRaid) {
-        List<BenchedPlayer> benchedPlayers = new ArrayList<>();
+    private List<PlayerStat> getBenchedPlayers(List<Raid> raids, Raid currentRaid) {
+        List<PlayerStat> playerStats = new ArrayList<>();
         for(Player player : currentRaid.acceptedPlayers()) {
             int numBenchedToday = 0;
             int numBenchedTotal = 0;
@@ -193,10 +193,10 @@ public class RaidPlanner extends AbstractHandler {
                 }
             }
             if(numBenchedToday>0) {
-                benchedPlayers.add(new BenchedPlayer(player, numBenchedToday, numBenchedTwoWeeks, numBenchedTotal));
+                playerStats.add(new PlayerStat(player, numBenchedToday, numBenchedTwoWeeks, numBenchedTotal));
             }
         }
-        return benchedPlayers;
+        return playerStats;
     }
 
     private void removePlayer(HttpServletRequest request, Raid raid) {
@@ -315,17 +315,4 @@ public class RaidPlanner extends AbstractHandler {
         writer.println("</div>");
     }
 
-    class BenchedPlayer {
-        final Player player;
-        final int numBenchedToday;
-        final int numBenchedTwoWeeks;
-        final int numBenchedTotal;
-
-        public BenchedPlayer(Player player, int numBenchedToday, int numBenchedTwoWeeks, int numBenchedTotal) {
-            this.player = player;
-            this.numBenchedToday = numBenchedToday;
-            this.numBenchedTwoWeeks = numBenchedTwoWeeks;
-            this.numBenchedTotal = numBenchedTotal;
-        }
-    }
 }

@@ -107,9 +107,9 @@ public class RaidViewer {
         }
 
         List<Player> knownPlayers = raid.signups.stream().map(s -> s.player).distinct().collect(Collectors.toList());
-        if(knownPlayers.size() < playerDao.getPlayers().size()) {
+        if(knownPlayers.size() < playerDao.getActivePlayers().size()) {
             writer.println("<h2>Unknown</h2><ul>");
-            playerDao.getPlayers().stream().filter(p -> !knownPlayers.contains(p)).forEach(p -> writer.format("<li>%s</li>", p.classString()));
+            playerDao.getActivePlayers().stream().filter(p -> !knownPlayers.contains(p)).forEach(p -> writer.format("<li>%s</li>", p.classString()));
             writer.println("</ul>");
         }
 

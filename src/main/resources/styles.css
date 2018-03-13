@@ -39,3 +39,12 @@ div {
   float: left;
   margin: 20px;
 }
+
+table.statTable {
+  border-collapse: collapse;
+}
+
+table.statTable td {
+  border: 1px solid black;
+  text-align: center;
+}

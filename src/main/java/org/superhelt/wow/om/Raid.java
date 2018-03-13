@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class Raid {
@@ -40,6 +41,16 @@ public class Raid {
 
     public boolean isAccepted(Player player) {
         return this.signups.stream().anyMatch(s->s.type==Signup.Type.ACCEPTED && s.player.equals(player));
+    }
+
+    public Optional<Signup.Type> getSignupStatus(Player player) {
+        Optional<Signup> signup = this.signups.stream().filter(s -> s.player.equals(player)).findFirst();
+
+        if(signup.isPresent()) {
+            return Optional.of(signup.get().type);
+        } else {
+            return Optional.empty();
+        }
     }
 
     public boolean isFinalized() {
