@@ -2,10 +2,7 @@ package org.superhelt.wow;
 
 import org.superhelt.wow.dao.PlayerDao;
 import org.superhelt.wow.dao.RaidDao;
-import org.superhelt.wow.om.Player;
-import org.superhelt.wow.om.PlayerStat;
-import org.superhelt.wow.om.Raid;
-import org.superhelt.wow.om.Signup;
+import org.superhelt.wow.om.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -16,6 +13,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class RaidInviter extends AbstractHandler {
 
@@ -71,17 +69,21 @@ public class RaidInviter extends AbstractHandler {
         Map<Player, PlayerStat> tentativeMap = new HashMap<>();
         Map<Player, PlayerStat> declinedMap = new HashMap<>();
         Map<Player, PlayerStat> unknownMap = new HashMap<>();
+        Map<Player, PlayerStat> noShowMap = new HashMap<>();
+        Map<Player, PlayerStat> lateMap = new HashMap<>();
 
         List<Player> players = playerDao.getActivePlayers();
         List<Raid> raids = raidDao.getRaids();
-        raids.sort(Comparator.comparing(r->r.start));
+        raids.sort(Comparator.comparing(r -> r.start));
         for (Player player : players) {
+            PlayerStat tenative = tentativeMap.computeIfAbsent(player, (k) -> new PlayerStat(k));
+            PlayerStat declined = declinedMap.computeIfAbsent(player, (k) -> new PlayerStat(k));
+            PlayerStat unknown = unknownMap.computeIfAbsent(player, (k) -> new PlayerStat(k));
+            PlayerStat noShow = noShowMap.computeIfAbsent(player, (k) -> new PlayerStat(k));
+            PlayerStat late = lateMap.computeIfAbsent(player, (k) -> new PlayerStat(k));
             boolean alreadyJoined = false;
             for (Raid raid : raids) {
-                if(alreadyJoined || raid.getSignupStatus(player).isPresent()) {
-                    PlayerStat tenative = tentativeMap.computeIfAbsent(player, (k) -> new PlayerStat(k));
-                    PlayerStat declined = declinedMap.computeIfAbsent(player, (k) -> new PlayerStat(k));
-                    PlayerStat unknown = unknownMap.computeIfAbsent(player, (k) -> new PlayerStat(k));
+                if (alreadyJoined || raid.getSignupStatus(player).isPresent()) {
 
                     Optional<Signup.Type> type = raid.getSignupStatus(player);
                     if (!type.isPresent()) { // Unknown - did not sign up for the raid
@@ -93,19 +95,36 @@ public class RaidInviter extends AbstractHandler {
                     }
                     alreadyJoined = true;
                 }
+                List<Event> events = raid.events.stream().filter(e -> e.player.equals(player)).collect(Collectors.toList());
+
+                for (Event event : events) {
+                    switch (event.type) {
+                        case NOSHOW:
+                            incrementStats(noShow, raid);
+                            break;
+                        case LATE:
+                            incrementStats(late, raid);
+                            break;
+                    }
+                }
             }
         }
 
-        writer.println("<table class=\"statTable\"><tr><th>Player</th><th colspan=\"2\">Tentative</th><th colspan=\"2\">Declined</th><th colspan=\"2\">Unknown</th></tr>");
-        writer.println("<tr><th></th><th>Two Weeks</th><th>Total</th><th>Two Weeks</th><th>Total</th><th>Two Weeks</th><th>Total</th></tr>");
+        writer.println("<table class=\"statTable\"><tr><th>Player</th><th colspan=\"2\">Tentative</th><th colspan=\"2\">Declined</th>");
+        writer.println("<th colspan=\"2\">Unknown</th><th colspan=\"2\">Noshow</th><th colspan=\"2\">Late</th></tr>");
+        writer.println("<tr><th></th><th>Two Weeks</th><th>Total</th><th>Two Weeks</th><th>Total</th><th>Two Weeks</th><th>Total</th><th>Two Weeks</th><th>Total</th><th>Two Weeks</th><th>Total</th></tr>");
         for (Player player : players) {
             PlayerStat tentative = tentativeMap.get(player);
             PlayerStat declined = declinedMap.get(player);
             PlayerStat unknown = unknownMap.get(player);
-            writer.format("<tr><td>%s</td><td>%d</td><td>%d</td><td>%d</td><td>%d</td><td>%d</td><td>%d</td></tr>\n",
+            PlayerStat noshow = noShowMap.get(player);
+            PlayerStat late = lateMap.get(player);
+            writer.format("<tr><td>%s</td><td>%d</td><td>%d</td><td>%d</td><td>%d</td><td>%d</td><td>%d</td><td>%d</td><td>%d</td><td>%d</td><td>%d</td></tr>\n",
                     player.classString(), tentative.getTwoWeeks(), tentative.getTotal(),
                     declined.getTwoWeeks(), declined.getTotal(),
-                    unknown.getTwoWeeks(), unknown.getTotal());
+                    unknown.getTwoWeeks(), unknown.getTotal(),
+                    noshow.getTwoWeeks(), noshow.getTotal(),
+                    late.getTwoWeeks(), late.getTotal());
         }
         writer.println("</table>");
     }
