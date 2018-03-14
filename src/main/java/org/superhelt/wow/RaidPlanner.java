@@ -161,7 +161,7 @@ public class RaidPlanner extends AbstractHandler {
         if(playerStats.size()>0) {
             writer.println("<h2>Benched</h2><table class=\"statTable\">");
             writer.println("<tr><th>Player</th><th colspan=\"3\">Benched</th>");
-            writer.println("<tr><th><th>Today</th><th>Two weeks</th><th>Total</th></tr>");
+            writer.println("<tr><th><th>Today</th><th>Two weeks</th><th>Month</th><th>Total</th></tr>");
             playerStats.sort(Comparator.comparingInt((PlayerStat a) -> a.getToday()).reversed());
             for(PlayerStat bp : playerStats) {
                 writer.format("<tr><td>%s</td><td>%d</td><td>%d</td><td>%d</td><td>%d</td></tr>", bp.getPlayer().classString(), bp.getToday(), bp.getTwoWeeks(), bp.getMonth(), bp.getTotal());
