@@ -39,8 +39,8 @@ public class PlayerAdmin extends AbstractHandler {
     }
 
     private void listNewPlayer(PrintWriter writer) {
-        writer.print("<form method=\"post\"><input type=\"hidden\" name=\"action\" value=\"new\">");
-        writer.print("<table><tr><th>Name</th><th>Class</th><th>Tank</th><th>Healer</th><th>Melee</th><th>Ranged</th></tr>");
+        writer.print("<form method=\"post\"><input type=\"hidden\" name=\"action\" value=\"new\">\n");
+        writer.print("<table><tr><th>Name</th><th>Class</th><th>Tank</th><th>Healer</th><th>Melee</th><th>Ranged</th></tr>\n");
         writer.print("<tr><td><input type=\"text\" name=\"name\"/></td><td><select name=\"class\">");
         for(Player.PlayerClass c : Player.PlayerClass.values()) {
             writer.format("<option value=\"%s\">%s</option>", c, c);
@@ -50,7 +50,7 @@ public class PlayerAdmin extends AbstractHandler {
             writer.format("<td><input type=\"checkbox\" name=\"%s\"/></td>", role);
         }
         writer.print("<td><input type=\"submit\" value=\"Add\"/></td>");
-        writer.print("</table>");
+        writer.print("</table></form>\n");
     }
 
     private void updatePlayer(HttpServletRequest request) {
@@ -109,7 +109,7 @@ public class PlayerAdmin extends AbstractHandler {
 
             writer.print("<td><input type=\"submit\" value=\"Edit\">");
             writer.format("<input type=\"hidden\" name=\"originalName\" value=\"%s\"/>", player.name);
-            writer.print("<input type=\"hidden\" name=\"action\" value=\"edit\"/></form></td></tr>");
+            writer.print("<input type=\"hidden\" name=\"action\" value=\"edit\"/></form></td></tr>\n");
         }
         writer.println("</table>");
     }
