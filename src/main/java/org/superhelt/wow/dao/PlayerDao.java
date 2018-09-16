@@ -83,7 +83,7 @@ public class PlayerDao {
             log.error("Unable to find player with name {}", name, e);
         }
 
-        return new Player(name, Player.PlayerClass.Druid, new ArrayList<>(), false);
+        return new Player(name, Player.PlayerClass.Unknown, new ArrayList<>(), false);
     }
 
     public void updatePlayer(String originalName, Player player) {

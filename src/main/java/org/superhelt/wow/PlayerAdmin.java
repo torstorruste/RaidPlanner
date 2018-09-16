@@ -1,5 +1,6 @@
 package org.superhelt.wow;
 
+import org.omg.CORBA.UNKNOWN;
 import org.superhelt.wow.dao.PlayerDao;
 import org.superhelt.wow.om.Player;
 
@@ -43,7 +44,8 @@ public class PlayerAdmin extends AbstractHandler {
         writer.print("<table><tr><th>Name</th><th>Class</th><th>Tank</th><th>Healer</th><th>Melee</th><th>Ranged</th></tr>\n");
         writer.print("<tr><td><input type=\"text\" name=\"name\"/></td><td><select name=\"class\">");
         for(Player.PlayerClass c : Player.PlayerClass.values()) {
-            writer.format("<option value=\"%s\">%s</option>", c, c);
+            if(c!= Player.PlayerClass.Unknown)
+                writer.format("<option value=\"%s\">%s</option>", c, c);
         }
         writer.print("</td>");
         for(Player.Role role : Player.Role.values()) {
