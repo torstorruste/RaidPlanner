@@ -43,6 +43,6 @@ public class Encounter {
     }
 
     public enum Boss {
-        GarothiWarbreaker, Felhounds, AntoranHighCommand, PortalKeeper, Eonar, Imonar, KinGaroth, Varimathras, Coven, Aggramar, Argus, UNKNOWN
+        Taloc, Mother, FetidDevourer, Vectis, ZekVoz, Zul, Mythrax, Ghuun, UNKNOWN
     }
 }
