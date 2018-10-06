@@ -77,9 +77,25 @@ public class RaidPlanner extends AbstractHandler {
                 planBoss(raid, Encounter.Boss.valueOf(boss), writer);
             }
 
-            listAbsentees(raid, writer);
-            showEvents(raid, writer);
+            showRighDiv(raid, writer);
+            if (boss != null) {
+                showPlayerMacro(raid, Encounter.Boss.valueOf(boss), writer);
+            }
         }
+    }
+
+    private void showRighDiv(Raid raid, PrintWriter writer) {
+        writer.println("<div>");
+        listAbsentees(raid, writer);
+        listNumberOfBenches(raid, writer);
+        showEvents(raid, writer);
+        writer.println("</div>");
+    }
+
+    private void showPlayerMacro(Raid raid, Encounter.Boss boss, PrintWriter writer) {
+        writer.print("<div style=\"clear: both\"><pre>/run WeakAuras.ScanEvents(\"SETUP_COMPARE\",[[");
+        raid.signups.stream().filter(s->raid.getEncounter(boss).isParticipating(s.player)).forEach(s->writer.print(s.player.name+" "));
+        writer.println("]])</pre></div>");
     }
 
     private void removeEvent(HttpServletRequest request, Raid raid) {
@@ -134,7 +150,6 @@ public class RaidPlanner extends AbstractHandler {
     }
 
     private void listAbsentees(Raid raid, PrintWriter writer) {
-        writer.println("<div>");
 
         if (raid.signups.stream().filter(s -> s.type == Signup.Type.TENTATIVE).count() > 0) {
             writer.println("<h2>Tentative</h2><ul>");
@@ -155,9 +170,11 @@ public class RaidPlanner extends AbstractHandler {
             writer.println("</ul>");
         }
 
+    }
+
+    private void listNumberOfBenches(Raid raid, PrintWriter writer) {
         List<Raid> raids = raidDao.getRaids();
         List<PlayerStat> playerStats = getBenchedPlayers(raids, raid);
-
         if(playerStats.size()>0) {
             writer.println("<h2>Benched</h2><table class=\"statTable\">");
             writer.println("<tr><th>Player</th><th colspan=\"3\">Benched</th>");
@@ -168,7 +185,6 @@ public class RaidPlanner extends AbstractHandler {
             }
             writer.println("</table");
         }
-        writer.println("</div>");
     }
 
     private List<PlayerStat> getBenchedPlayers(List<Raid> raids, Raid currentRaid) {
