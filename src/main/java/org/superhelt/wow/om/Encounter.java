@@ -43,6 +43,6 @@ public class Encounter {
     }
 
     public enum Boss {
-        Taloc, Mother, FetidDevourer, Vectis, ZekVoz, Zul, Mythrax, Ghuun, UNKNOWN
+        Champion, Grong, JadefireMasters, Opulence, Conclave, Rastakhan, Mekkatorque, Blockade, Jaina, UNKNOWN
     }
 }
