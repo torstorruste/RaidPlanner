@@ -166,6 +166,8 @@ public class RaidDao {
                     raid.encounters.add(new Encounter(boss));
                     addPlayers(raid, boss);
                 }
+
+                raid.encounters.sort(Comparator.comparing(Encounter::getBoss));
             }
         }
     }

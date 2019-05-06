@@ -34,6 +34,10 @@ public class Encounter {
         }
     }
 
+    public Boss getBoss() {
+        return boss;
+    }
+
     public int numParticipants() {
         int num = 0;
         for(List<Player> players : participants.values()) {
