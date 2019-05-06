@@ -43,6 +43,6 @@ public class Encounter {
     }
 
     public enum Boss {
-        Champion, Grong, JadefireMasters, Opulence, Conclave, Rastakhan, Mekkatorque, Blockade, Jaina, UNKNOWN
+        Champion, Grong, JadefireMasters, Opulence, Conclave, Rastakhan, Mekkatorque, Blockade, Jaina, RestlessCabal, Uunat, UNKNOWN
     }
 }
