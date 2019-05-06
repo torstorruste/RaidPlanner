@@ -270,4 +270,24 @@ public class RaidDao {
             log.error("Unable to remove event with time {} from raid {}", raid.start, time, e);
         }
     }
+
+    public void deleteEncounter(Raid raid, Encounter.Boss boss) {
+        try(PreparedStatement st = conn.prepareStatement("delete from encounter_player where raid=? and boss=?")) {
+            st.setString(1, df.format(raid.start));
+            st.setString(2, boss.toString());
+
+            st.executeUpdate();
+        } catch(SQLException e) {
+            log.error("Unable to delete players from encounter {}, {}", raid.start, boss, e);
+        }
+
+        try(PreparedStatement st = conn.prepareStatement("delete from encounter where raid=? and boss=?")) {
+            st.setString(1, df.format(raid.start));
+            st.setString(2, boss.toString());
+
+            st.executeUpdate();
+        } catch(SQLException e) {
+            log.error("Unable to delete encounter {}, {}", raid.start, boss, e);
+        }
+    }
 }

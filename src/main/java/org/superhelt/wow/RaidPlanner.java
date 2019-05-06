@@ -43,9 +43,14 @@ public class RaidPlanner extends AbstractHandler {
             LocalDate raidStart = LocalDate.parse(request.getParameter("raid"), df);
             Raid raid = raidDao.getRaid(raidStart);
 
+            String boss = request.getParameter("boss");
 
             if (action != null) {
                 switch (action) {
+                    case "deleteEncounter":
+                        deleteEncounter(raid, boss);
+                        boss = null;
+                        break;
                     case "addEncounter":
                         addEncounter(request, raid);
                         break;
@@ -72,7 +77,6 @@ public class RaidPlanner extends AbstractHandler {
             raid = raidDao.getRaid(raidStart);
             planRaid(writer, raid);
 
-            String boss = request.getParameter("boss");
             if (boss != null) {
                 planBoss(raid, Encounter.Boss.valueOf(boss), writer);
             }
@@ -239,6 +243,10 @@ public class RaidPlanner extends AbstractHandler {
         raidDao.addEncounter(raid, boss);
     }
 
+    private void deleteEncounter(Raid raid, String boss) {
+        raidDao.deleteEncounter(raid, Encounter.Boss.valueOf(boss));
+    }
+
     private void finalize(Raid raid) {
         raidDao.finalize(raid, LocalDateTime.now());
     }
@@ -270,7 +278,14 @@ public class RaidPlanner extends AbstractHandler {
 
         writer.println("<h1>Encounters</h1>");
         raid.encounters.forEach(e -> {
-            writer.format("<a href=\"?raid=%s&boss=%s\">%s</a><br/>\n", df.format(raid.start), e.boss, e.boss);
+            writer.format("<a href=\"?raid=%s&boss=%s\">%s</a>",
+                    df.format(raid.start), e.boss, e.boss);
+
+            if(!raid.isFinalized()) {
+                writer.format(" (<a href=\"?action=deleteEncounter&raid=%s&boss=%s\">X</a>)",
+                        df.format(raid.start), e.boss);
+            }
+            writer.print("<br/>\n");
         });
         writer.println("</div>");
     }
