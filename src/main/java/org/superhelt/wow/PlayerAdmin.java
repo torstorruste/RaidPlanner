@@ -11,6 +11,8 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class PlayerAdmin extends AbstractHandler {
     private final PlayerDao playerDao;
@@ -80,10 +82,17 @@ public class PlayerAdmin extends AbstractHandler {
     }
 
     private void listPlayers(PrintWriter writer) {
-        writer.print("<table><tr><th>Name</th><th>Class</th><th>Tank</th><th>Healer</th><th>Melee</th><th>Ranged</th><th>Active</th></tr>");
         List<Player> players = playerDao.getAllPlayers();
         players.sort(Comparator.comparing(a -> a.name.toLowerCase()));
-        for(Player player : players) {
+
+        listPlayers(writer, players.stream().filter(Player::isActive));
+        writer.print("<h2>Inactive players</h2>");
+        listPlayers(writer, players.stream().filter(player -> !player.isActive()));
+    }
+
+    private void listPlayers(PrintWriter writer, Stream<Player> players) {
+        writer.print("<table><tr><th>Name</th><th>Class</th><th>Tank</th><th>Healer</th><th>Melee</th><th>Ranged</th><th>Active</th></tr>");
+        players.forEach(player->{
             writer.format("<tr><td><form method=\"post\"><input type=\"text\" name=\"name\" value=\"%s\"/></td>", player.name);
             writer.print("<td><select name=\"class\">");
             for(Player.PlayerClass c : Player.PlayerClass.values()) {
@@ -112,7 +121,7 @@ public class PlayerAdmin extends AbstractHandler {
             writer.print("<td><input type=\"submit\" value=\"Edit\">");
             writer.format("<input type=\"hidden\" name=\"originalName\" value=\"%s\"/>", player.name);
             writer.print("<input type=\"hidden\" name=\"action\" value=\"edit\"/></form></td></tr>\n");
-        }
+        });
         writer.println("</table>");
     }
 }

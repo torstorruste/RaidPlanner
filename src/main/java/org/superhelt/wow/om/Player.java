@@ -23,6 +23,10 @@ public class Player {
         return String.format("<span class=\"%s\">%s</span>", playerClass.toString().toLowerCase(), name);
     }
 
+    public boolean isActive() {
+        return active;
+    }
+
     public enum PlayerClass {
         Deathknight, DemonHunter, Druid, Paladin, Priest, Rogue, Warrior, Shaman, Warlock, Mage, Hunter, Monk, Unknown
     }
