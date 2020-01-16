@@ -47,6 +47,6 @@ public class Encounter {
     }
 
     public enum Boss {
-        Sivara,Behemoth,Radiance,Ashvana,Orgozoa,QueensCourt,Zaqul,Azshara, Champion, Grong, JadefireMasters, Opulence, Conclave, Rastakhan, Mekkatorque, Blockade, Jaina, RestlessCabal, Uunat, UNKNOWN
+        Wrathion,Maut,ProphetSkitra,InquisitorXanesh,Hivemind,Shadhar,Drestagarth,Ilgynoth,Vexiona,Raden,Carapace,Nzoth,Sivara,Behemoth,Radiance,Ashvana,Orgozoa,QueensCourt,Zaqul,Azshara, Champion, Grong, JadefireMasters, Opulence, Conclave, Rastakhan, Mekkatorque, Blockade, Jaina, RestlessCabal, Uunat, UNKNOWN
     }
 }
